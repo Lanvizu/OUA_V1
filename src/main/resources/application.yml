@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: OUA_V1
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #    각자 PC에 만들어놓은 Database이름을 써야 합니다.
+    url: jdbc:mysql://localhost:3306/oua_v1 # Database이름 ?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    #    mysql에 생성한 사용자 계정 정보를 써야 합니다.
+    username: root
+    password: 1234 # 자신의 mysql 비밀번호
+
+  # spring data jpa 설정
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        # show_sql: true # System.out 에 하이버네이트 실행 SQL을 남김
+        format_sql: true
+#    open-in-view: false
+#    show-sql: true
