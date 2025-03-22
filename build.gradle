@@ -30,7 +30,16 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	// Security
-	implementation 'org.springframework.boot:spring-boot-starter-security'
+//	implementation 'org.springframework.boot:spring-boot-starter-security'
+	//spring Securiy의 암호화만 사용
+	implementation 'org.springframework.security:spring-security-crypto'
+
+	// Email
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 
 	// Database
 //	runtimeOnly 'com.h2database:h2'
