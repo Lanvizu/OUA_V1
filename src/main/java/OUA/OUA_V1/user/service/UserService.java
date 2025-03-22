@@ -3,7 +3,6 @@ package OUA.OUA_V1.user.service;
 import OUA.OUA_V1.auth.service.PasswordValidator;
 import OUA.OUA_V1.user.controller.request.UserCreateRequest;
 import OUA.OUA_V1.user.domain.User;
-import OUA.OUA_V1.user.exception.UserEmailDuplicationException;
 import OUA.OUA_V1.user.exception.UserNotFoundException;
 import OUA.OUA_V1.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,15 +25,12 @@ public class UserService {
     private final PasswordValidator passwordValidator;
 
     @Transactional
-    public User create(UserCreateRequest request) {
-        boolean exists = userRepository.existsByEmail(request.email());
-        if (exists) {
-            throw new UserEmailDuplicationException();
-        }
+    public Long create(UserCreateRequest request) {
 
         String encodedPassword = generateEncoderPassword(request.password());
-        User newUser = new User(request.email(), request.name(), request.nickName(), encodedPassword, request.phone());
-        return userRepository.save(newUser);
+//        User newUser = new User(request.email(), request.name(), request.nickName(), encodedPassword, request.phone());
+        User savedUser = userRepository.save(new User(request.email(), request.name(), request.nickName(), encodedPassword, request.phone()));
+        return savedUser.getId();
     }
 
     private String generateEncoderPassword(String rawPassword) {
@@ -49,6 +45,10 @@ public class UserService {
         if (!VALID_PASSWORD_PATTERN.matcher(rawPassword).matches()) {
             throw new RuntimeException();// 추후 예외 처리
         }
+    }
+
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 
     public User findById(Long id) {
