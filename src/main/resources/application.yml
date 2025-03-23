@@ -36,3 +36,9 @@ spring:
     redis:
       port: 6379
       host: localhost
+security:
+  jwt:
+    token:
+      secret-key: test
+      expire-length: 3600000
+      algorithm: HS256
