@@ -1,5 +1,6 @@
 package OUA.OUA_V1.user.facade;
 
+import OUA.OUA_V1.auth.security.jwt.JwtTokenProvider;
 import OUA.OUA_V1.config.RedisService;
 import OUA.OUA_V1.user.controller.request.CodeVerificationRequest;
 import OUA.OUA_V1.user.controller.request.EmailRequest;
@@ -12,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -21,21 +24,10 @@ public class UserFacade {
     private final UserService userService;
     private final EmailService emailService;
     private final RedisService redisService;
+    private final JwtTokenProvider jwtTokenProvider;
+
     private static final long VERIFICATION_EXPIRATION_MILLIS = 10 * 60 * 1000;
     private static final int RESEND_COOLDOWN_MINUTES = 1;
-
-//    public void requestEmailVerification(EmailRequest request) {
-//        // 이메일 중복 체크
-//        if (userService.existsByEmail(request.email())) {
-//            throw new UserEmailDuplicationException();
-//        }
-//        // 인증 이메일 발송
-//        String code = emailService.sendMail(request.email());
-//        redisService.setVerificationCode(request.email(), code, VERIFICATION_EXPIRATION_MILLIS);
-//        // Record the time email was sent for rate limiting
-//        redisService.setLastSentTime(request.email());
-//        log.info("Verification email sent to: {}", request.email());
-//    }
 
     public void requestEmailVerification(EmailRequest request) {
         validateEmailAvailability(request.email());
@@ -45,7 +37,6 @@ public class UserFacade {
         emailService.sendVerificationEmail(request.email(), code);
         redisService.setVerificationCode(request.email(), code, VERIFICATION_EXPIRATION_MILLIS);
 
-        // Record the time the email was sent for future cooldown checks
         redisService.setLastSentTime(request.email());
         log.info("Verification email sent to: {}", request.email());
     }
@@ -66,14 +57,19 @@ public class UserFacade {
         return String.format("%06d", (int)(Math.random() * 999_999));
     }
 
-    public boolean verifyEmailCode(String email, String inputCode) {
-        String storedCode = redisService.getVerificationCode(email);
-        return storedCode != null && storedCode.equals(inputCode);
+    public String verifyEmailCode(CodeVerificationRequest request) {
+        String storedCode = redisService.getVerificationCode(request.email());
+        log.info(storedCode);
+        if (storedCode != null && storedCode.equals(request.code())) {
+            Map<String, Object> claims = Map.of("email", request.email());
+            String token = jwtTokenProvider.createToken(claims);
+            redisService.deleteVerificationCode(request.email());
+            return token;
+        } else {
+            throw new RuntimeException("인증 코드가 올바르지 않습니다.");
+
+        }
     }
-
-
-
-
 
 //    public void resendEmail(EmailRequest request) {
 //        // 이메일 중복 체크
@@ -84,14 +80,16 @@ public class UserFacade {
 //        emailService.resendMail(request.email());
 //    }
 //
-//    @Transactional
-//    public Long create(UserCreateRequest request) {
-//        // 이메일 인증 코드 확인
-//        boolean isValid = emailService.verifyCode(request.email(), request.code());
-//        if (!isValid) {
-//            throw new RuntimeException("인증 코드 다름"); // 추후 예외 처리 필요
-//        }
-//        // 회원가입 진행
-//        return userService.create(request);
-//    }
+    @Transactional
+    public Long create(UserCreateRequest request) {
+        String token = request.token();
+        if (token == null || !jwtTokenProvider.isAlive(token)) {
+            throw new RuntimeException("유효하지 않은 인증 토큰입니다.");
+        }
+        String emailFromToken = jwtTokenProvider.extractClaim(token, "email");
+        if (!emailFromToken.equals(request.email())) {
+            throw new RuntimeException("토큰에 담긴 이메일과 회원가입 요청 이메일이 일치하지 않습니다.");
+        }
+        return userService.create(request);
+    }
 }

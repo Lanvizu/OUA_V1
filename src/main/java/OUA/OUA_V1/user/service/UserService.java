@@ -1,6 +1,6 @@
 package OUA.OUA_V1.user.service;
 
-import OUA.OUA_V1.auth.service.PasswordValidator;
+import OUA.OUA_V1.auth.security.PasswordValidator;
 import OUA.OUA_V1.user.controller.request.UserCreateRequest;
 import OUA.OUA_V1.user.domain.User;
 import OUA.OUA_V1.user.exception.UserNotFoundException;
@@ -28,7 +28,6 @@ public class UserService {
     public Long create(UserCreateRequest request) {
 
         String encodedPassword = generateEncoderPassword(request.password());
-//        User newUser = new User(request.email(), request.name(), request.nickName(), encodedPassword, request.phone());
         User savedUser = userRepository.save(new User(request.email(), request.name(), request.nickName(), encodedPassword, request.phone()));
         return savedUser.getId();
     }
