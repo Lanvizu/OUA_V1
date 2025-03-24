@@ -18,17 +18,12 @@ import java.net.URI;
 public class UserController {
 
     private final UserFacade userFacade;
+
     @PostMapping("/email-verification")
     public ResponseEntity<Void> requestEmailVerification(@RequestBody @Valid EmailRequest request) {
         userFacade.requestEmailVerification(request);
         return ResponseEntity.ok().build();
     }
-
-//    @PostMapping("/email-resend")
-//    public ResponseEntity<Void> resendEmail(@RequestBody @Valid EmailRequest request) {
-//        userFacade.resendEmail(request);
-//        return ResponseEntity.ok().build();
-//    }
 
     @PostMapping("/code-verification")
     public ResponseEntity<VerificationResponse> verifyCode(@RequestBody @Valid CodeVerificationRequest request) {
