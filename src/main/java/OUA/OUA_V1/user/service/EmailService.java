@@ -1,5 +1,6 @@
 package OUA.OUA_V1.user.service;
 
+import OUA.OUA_V1.user.exception.UserEmailCreateException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +16,9 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private static final String senderEmail= "ghzm888@gmail.com";
 
-    public String sendVerificationEmail(String email, String code){
+    public void sendVerificationEmail(String email, String code){
         MimeMessage message = createMail(email, code);
         mailSender.send(message);
-        return code;
     }
 
     private MimeMessage createMail(String email, String code){
@@ -34,7 +34,8 @@ public class EmailService {
             body += "<h3>" + "감사합니다." + "</h3>";
             message.setText(body,"UTF-8", "html");
         } catch (MessagingException e) {
-            throw new RuntimeException("메일 발송 실패", e); // 추후 예외 처리 필요
+            // 예외처리 개선 필요
+            throw new UserEmailCreateException();
         }
         return message;
     }

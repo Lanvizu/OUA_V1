@@ -6,6 +6,8 @@ import OUA.OUA_V1.user.controller.request.CodeVerificationRequest;
 import OUA.OUA_V1.user.controller.request.EmailRequest;
 import OUA.OUA_V1.user.controller.request.UserCreateRequest;
 import OUA.OUA_V1.user.exception.UserEmailDuplicationException;
+import OUA.OUA_V1.user.exception.UserEmailSendLimitException;
+import OUA.OUA_V1.user.exception.badRequest.UserCodeVerificationException;
 import OUA.OUA_V1.user.service.EmailService;
 import OUA.OUA_V1.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,6 @@ public class UserFacade {
     private final JwtTokenProvider jwtTokenProvider;
 
     private static final long VERIFICATION_EXPIRATION_MILLIS = 10 * 60 * 1000;
-    private static final int RESEND_COOLDOWN_MINUTES = 1;
 
     public void requestEmailVerification(EmailRequest request) {
         validateEmailAvailability(request.email());
@@ -36,9 +37,7 @@ public class UserFacade {
         String code = generateRandomCode();
         emailService.sendVerificationEmail(request.email(), code);
         redisService.setVerificationCode(request.email(), code, VERIFICATION_EXPIRATION_MILLIS);
-
         redisService.setLastSentTime(request.email());
-        log.info("Verification email sent to: {}", request.email());
     }
 
     private void validateEmailAvailability(String email) {
@@ -49,7 +48,7 @@ public class UserFacade {
 
     private void checkResendCooldown(String email) {
         if (redisService.wasRecentlySent(email)) {
-            throw new RuntimeException("%d분 후 재전송 가능합니다");
+            throw new UserEmailSendLimitException();
         }
     }
 
@@ -66,20 +65,10 @@ public class UserFacade {
             redisService.deleteVerificationCode(request.email());
             return token;
         } else {
-            throw new RuntimeException("인증 코드가 올바르지 않습니다.");
-
+            throw new UserCodeVerificationException();
         }
     }
 
-//    public void resendEmail(EmailRequest request) {
-//        // 이메일 중복 체크
-//        if (userService.existsByEmail(request.email())) {
-//            throw new UserEmailDuplicationException();
-//        }
-//        // 인증 이메일 발송
-//        emailService.resendMail(request.email());
-//    }
-//
     @Transactional
     public Long create(UserCreateRequest request) {
         String token = request.token();

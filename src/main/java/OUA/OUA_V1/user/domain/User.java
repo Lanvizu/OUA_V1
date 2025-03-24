@@ -1,6 +1,7 @@
 package OUA.OUA_V1.user.domain;
 
 import OUA.OUA_V1.BaseEntity;
+import OUA.OUA_V1.user.exception.badRequest.UserIllegalPhoneNumberException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -51,6 +52,8 @@ public class User extends BaseEntity {
     public User(String email, String name, String nickName, String password, String phone) {
         validatePhoneNumber(phone);
         this.email = email;
+        this.name = name;
+        this.nickName = nickName;
         this.password = password;
         this.phone = phone;
         this.userType = UserType.USER;
@@ -59,7 +62,7 @@ public class User extends BaseEntity {
 
     private void validatePhoneNumber(String phoneNumber) {
         if (!VALID_PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches()) {
-            throw new RuntimeException(); // 예외처리 필수
+            throw new UserIllegalPhoneNumberException();
         }
     }
 
