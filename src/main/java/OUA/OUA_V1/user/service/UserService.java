@@ -1,9 +1,11 @@
 package OUA.OUA_V1.user.service;
 
-import OUA.OUA_V1.auth.service.PasswordValidator;
+import OUA.OUA_V1.auth.security.PasswordValidator;
 import OUA.OUA_V1.user.controller.request.UserCreateRequest;
 import OUA.OUA_V1.user.domain.User;
 import OUA.OUA_V1.user.exception.UserNotFoundException;
+import OUA.OUA_V1.user.exception.badRequest.UserIllegalPasswordException;
+import OUA.OUA_V1.user.exception.badRequest.UserPasswordLengthException;
 import OUA.OUA_V1.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,9 +28,7 @@ public class UserService {
 
     @Transactional
     public Long create(UserCreateRequest request) {
-
         String encodedPassword = generateEncoderPassword(request.password());
-//        User newUser = new User(request.email(), request.name(), request.nickName(), encodedPassword, request.phone());
         User savedUser = userRepository.save(new User(request.email(), request.name(), request.nickName(), encodedPassword, request.phone()));
         return savedUser.getId();
     }
@@ -40,10 +40,10 @@ public class UserService {
 
     private void validatePassword(String rawPassword) {
         if (rawPassword.length() < PASSWORD_MIN_LENGTH || rawPassword.length() > PASSWORD_MAX_LENGTH) {
-            throw new RuntimeException();// 추후 예외 처리
+            throw new UserPasswordLengthException(PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH, rawPassword.length());
         }
         if (!VALID_PASSWORD_PATTERN.matcher(rawPassword).matches()) {
-            throw new RuntimeException();// 추후 예외 처리
+            throw new UserIllegalPasswordException();
         }
     }
 

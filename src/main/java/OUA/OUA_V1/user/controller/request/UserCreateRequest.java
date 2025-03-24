@@ -18,6 +18,8 @@ public record UserCreateRequest(
         String password,
 
         @NotBlank(message = "전화번호를 입력해주세요.")
-        String phone
+        String phone,
+
+        String token //수정 필요
 ){
 }

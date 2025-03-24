@@ -1,4 +1,4 @@
-package OUA.OUA_V1.auth.service;
+package OUA.OUA_V1.auth.security;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
