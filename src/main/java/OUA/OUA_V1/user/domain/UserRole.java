@@ -1,6 +1,6 @@
 package OUA.OUA_V1.user.domain;
 
-public enum UserType {
+public enum UserRole {
     ADMIN,
     USER
     ;

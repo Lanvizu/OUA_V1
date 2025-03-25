@@ -1,6 +1,6 @@
 package OUA.OUA_V1.user.facade;
 
-import OUA.OUA_V1.auth.security.jwt.JwtTokenProvider;
+import OUA.OUA_V1.auth.security.TokenProvider;
 import OUA.OUA_V1.config.RedisService;
 import OUA.OUA_V1.user.controller.request.CodeVerificationRequest;
 import OUA.OUA_V1.user.controller.request.EmailRequest;
@@ -11,7 +11,6 @@ import OUA.OUA_V1.user.exception.badRequest.UserCodeVerificationException;
 import OUA.OUA_V1.user.service.EmailService;
 import OUA.OUA_V1.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +19,12 @@ import java.util.Map;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-@Slf4j
 public class UserFacade {
 
     private final UserService userService;
     private final EmailService emailService;
     private final RedisService redisService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenProvider tokenProvider;
 
     private static final long VERIFICATION_EXPIRATION_MILLIS = 10 * 60 * 1000;
 
@@ -58,10 +56,9 @@ public class UserFacade {
 
     public String verifyEmailCode(CodeVerificationRequest request) {
         String storedCode = redisService.getVerificationCode(request.email());
-        log.info(storedCode);
         if (storedCode != null && storedCode.equals(request.code())) {
             Map<String, Object> claims = Map.of("email", request.email());
-            String token = jwtTokenProvider.createToken(claims);
+            String token = tokenProvider.createToken(claims);
             redisService.deleteVerificationCode(request.email());
             return token;
         } else {
@@ -72,10 +69,10 @@ public class UserFacade {
     @Transactional
     public Long create(UserCreateRequest request) {
         String token = request.token();
-        if (token == null || !jwtTokenProvider.isAlive(token)) {
+        if (token == null || !tokenProvider.isAlive(token)) {
             throw new RuntimeException("유효하지 않은 인증 토큰입니다.");
         }
-        String emailFromToken = jwtTokenProvider.extractClaim(token, "email");
+        String emailFromToken = tokenProvider.extractClaim(token, "email");
         if (!emailFromToken.equals(request.email())) {
             throw new RuntimeException("토큰에 담긴 이메일과 회원가입 요청 이메일이 일치하지 않습니다.");
         }
