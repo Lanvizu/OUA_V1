@@ -38,7 +38,7 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private UserType userType;
+    private UserRole role;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -56,7 +56,7 @@ public class User extends BaseEntity {
         this.nickName = nickName;
         this.password = password;
         this.phone = phone;
-        this.userType = UserType.USER;
+        this.role = UserRole.USER;
         this.loginType = LoginType.LOCAL;
     }
 
