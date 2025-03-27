@@ -3,7 +3,7 @@ package OUA.OUA_V1.auth.service;
 import OUA.OUA_V1.auth.exception.IllegalTokenException;
 import OUA.OUA_V1.auth.security.PasswordValidator;
 import OUA.OUA_V1.auth.security.TokenProvider;
-import OUA.OUA_V1.user.domain.User;
+import OUA.OUA_V1.member.domain.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +22,10 @@ public class AuthService {
     private final TokenProvider tokenProvider;
     private final PasswordValidator passwordValidator;
 
-    public String createToken(User user) {
+    public String createToken(Member member) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(EMAIL_CLAIM, user.getEmail());
-        claims.put(ROLE_CLAIM, user.getRole().name());
+        claims.put(EMAIL_CLAIM, member.getEmail());
+        claims.put(ROLE_CLAIM, member.getRole().name());
 
         return tokenProvider.createToken(claims);
     }

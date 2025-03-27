@@ -1,6 +1,6 @@
-package OUA.OUA_V1.user.service;
+package OUA.OUA_V1.member.service;
 
-import OUA.OUA_V1.user.exception.UserEmailCreateException;
+import OUA.OUA_V1.member.exception.MemberEmailCreateException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class EmailService {
             message.setText(body,"UTF-8", "html");
         } catch (MessagingException e) {
             // 예외처리 개선 필요
-            throw new UserEmailCreateException();
+            throw new MemberEmailCreateException();
         }
         return message;
     }
