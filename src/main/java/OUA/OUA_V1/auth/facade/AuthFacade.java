@@ -3,8 +3,8 @@ package OUA.OUA_V1.auth.facade;
 import OUA.OUA_V1.auth.exception.LoginFailedException;
 import OUA.OUA_V1.auth.controller.request.LoginRequest;
 import OUA.OUA_V1.auth.service.AuthService;
-import OUA.OUA_V1.user.domain.User;
-import OUA.OUA_V1.user.service.UserService;
+import OUA.OUA_V1.member.domain.Member;
+import OUA.OUA_V1.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,13 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthFacade {
 
     private final AuthService authService;
-    private final UserService userService;
+    private final MemberService memberService;
 
     public String login(LoginRequest request) {
-        User user = userService.findByEmail(request.email());
-        if (authService.isNotVerifiedPassword(request.password(), user.getPassword())) {
+        Member member = memberService.findByEmail(request.email());
+        if (authService.isNotVerifiedPassword(request.password(), member.getPassword())) {
             throw new LoginFailedException();
         }
-        return authService.createToken(user);
+        return authService.createToken(member);
     }
 }
