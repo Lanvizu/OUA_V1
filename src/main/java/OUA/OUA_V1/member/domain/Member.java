@@ -1,28 +1,25 @@
-package OUA.OUA_V1.user.domain;
+package OUA.OUA_V1.member.domain;
 
 import OUA.OUA_V1.BaseEntity;
-import OUA.OUA_V1.user.exception.badRequest.UserIllegalPhoneNumberException;
+import OUA.OUA_V1.member.exception.badRequest.MemberIllegalPhoneNumberException;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Entity
-@Getter
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User extends BaseEntity {
+@AllArgsConstructor
+@Getter
+public class Member extends BaseEntity {
 
     private static final Pattern VALID_PHONE_NUMBER_PATTERN = Pattern.compile(
             "^(010)\\d{3,4}\\d{4}$|^(02|0[3-6][1-5])\\d{3,4}\\d{4}$");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+    @Column(name = "member_id")
     private Long id;
 
     @Column(unique = true)
@@ -32,37 +29,38 @@ public class User extends BaseEntity {
 
     private String nickName;
 
-    private String phone;
-
     private String password;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
+    private String phone;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private LoginType loginType;
+    private MemberRole role;
 
-    public User(Long id, String email, String name, String nickName, String password, String phone) {
-        this(email, name, nickName, password, phone);
-        this.id = id;
-    }
+//    테스트 코드에만 사용 -> 수정이 필요
+//    public Member(Long id, String email, String name, String nickName, String password, String phone, MemberRole role) {
+//        this(email, name, nickName, password, phone);
+//        this.id = id;
+//        this.role = role;
+//    }
 
-    public User(String email, String name, String nickName, String password, String phone) {
+    public Member(String email, String name, String nickName, String password, String phone) {
         validatePhoneNumber(phone);
         this.email = email;
         this.name = name;
         this.nickName = nickName;
         this.password = password;
         this.phone = phone;
-        this.role = UserRole.USER;
-        this.loginType = LoginType.LOCAL;
+        this.role = MemberRole.MEMBER;
+    }
+
+    public void changeRole(MemberRole role) {
+        this.role = role;
     }
 
     private void validatePhoneNumber(String phoneNumber) {
         if (!VALID_PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches()) {
-            throw new UserIllegalPhoneNumberException();
+            throw new MemberIllegalPhoneNumberException();
         }
     }
 
@@ -71,10 +69,10 @@ public class User extends BaseEntity {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof User user)) {
+        if (!(o instanceof Member member)) {
             return false;
         }
-        return Objects.equals(id, user.id) && Objects.equals(email, user.email);
+        return Objects.equals(id, member.id) && Objects.equals(email, member.email);
     }
 
     @Override
