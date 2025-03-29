@@ -34,6 +34,6 @@ public class ServiceTest {
     @BeforeEach
     void resetDb() {
         dbCleaner.truncateEveryTable();
-        defaultMember = memberRepository.save(MemberFixture.ADMIN);
+//        defaultMember = memberRepository.save(MemberFixture.ADMIN);
     }
 }
