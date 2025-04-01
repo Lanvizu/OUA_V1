@@ -1,7 +1,7 @@
 package OUA.OUA_V1.member.facade;
 
 import OUA.OUA_V1.auth.security.TokenProvider;
-import OUA.OUA_V1.config.RedisService;
+import OUA.OUA_V1.global.service.RedisService;
 import OUA.OUA_V1.member.controller.request.CodeVerificationRequest;
 import OUA.OUA_V1.member.controller.request.EmailRequest;
 import OUA.OUA_V1.member.controller.request.MemberCreateRequest;

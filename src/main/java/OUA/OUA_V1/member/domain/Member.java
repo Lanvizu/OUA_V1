@@ -2,9 +2,12 @@ package OUA.OUA_V1.member.domain;
 
 import OUA.OUA_V1.BaseEntity;
 import OUA.OUA_V1.member.exception.badRequest.MemberIllegalPhoneNumberException;
+import OUA.OUA_V1.product.domain.Product;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -37,12 +40,8 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private MemberRole role;
 
-//    테스트 코드에만 사용 -> 수정이 필요
-//    public Member(Long id, String email, String name, String nickName, String password, String phone, MemberRole role) {
-//        this(email, name, nickName, password, phone);
-//        this.id = id;
-//        this.role = role;
-//    }
+    @OneToMany(mappedBy = "member")
+    private List<Product> products = new ArrayList<>();
 
     public Member(String email, String name, String nickName, String password, String phone) {
         validatePhoneNumber(phone);
@@ -91,5 +90,4 @@ public class Member extends BaseEntity {
                 ", phoneNumber='" + phone + '\'' +
                 '}';
     }
-
 }
