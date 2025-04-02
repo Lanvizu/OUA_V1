@@ -36,7 +36,7 @@ public class ProductFacade {
 
     @Transactional
     public void deleteProduct(Long productId) {
-        Product product = productService.findProductById(productId);
+        Product product = productService.findById(productId);
         List<String> imageUrls = product.getImageUrls();
         productService.deleteProduct(productId);
         deleteImages(imageUrls);
