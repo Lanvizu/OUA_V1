@@ -16,17 +16,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final String EMAIL_CLAIM = "email";
     private static final String ROLE_CLAIM = "role";
+    private static final String MEMBER_ID_CLAIM = "memberId";
 
     private final TokenProvider tokenProvider;
     private final PasswordValidator passwordValidator;
 
     public String createToken(Member member) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(EMAIL_CLAIM, member.getEmail());
+        claims.put(MEMBER_ID_CLAIM, member.getId().toString()); // int로 저장 시 추출할 때 변환 필요
         claims.put(ROLE_CLAIM, member.getRole().name());
-
         return tokenProvider.createToken(claims);
     }
 
@@ -36,10 +35,6 @@ public class AuthService {
         } catch (IllegalTokenException e) {
             return false;
         }
-    }
-
-    public String extractEmail(String token) {
-        return extractClaim(token, EMAIL_CLAIM);
     }
 
     private String extractClaim(String token, String key) {
@@ -56,5 +51,10 @@ public class AuthService {
 
     public boolean isNotVerifiedPassword(String rawPassword, String encodedPassword) {
         return !passwordValidator.matches(rawPassword, encodedPassword);
+    }
+
+    public Long extractMemberId(String token) {
+        String memberId = extractClaim(token, "memberId");
+        return Long.parseLong(memberId);
     }
 }
