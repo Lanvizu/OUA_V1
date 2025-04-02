@@ -1,6 +1,7 @@
 package OUA.OUA_V1.product.domain;
 
 import OUA.OUA_V1.BaseEntity;
+import OUA.OUA_V1.auth.util.SecureResource;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.product.exception.badRequest.ProductIllegalNameException;
 import OUA.OUA_V1.product.exception.badRequest.ProductNameBlankException;
@@ -21,7 +22,7 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
-public class Product extends BaseEntity {
+public class Product extends BaseEntity implements SecureResource {
 
     private static final int NAME_MIN_LENGTH = 2;
     private static final int NAME_MAX_LENGTH = 32;
@@ -85,6 +86,11 @@ public class Product extends BaseEntity {
         if (!NAME_PATTERN.matcher(name).matches()) {
             throw new ProductIllegalNameException();
         }
+    }
+
+    @Override
+    public boolean isAuthorizedBy(Member member) {
+        return this.member.equals(member);
     }
 
     @Override
