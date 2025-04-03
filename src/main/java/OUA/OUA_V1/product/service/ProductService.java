@@ -2,11 +2,14 @@ package OUA.OUA_V1.product.service;
 
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
+import OUA.OUA_V1.product.controller.response.ProductResponse;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.exception.ProductNotFoundException;
 import OUA.OUA_V1.product.exception.badRequest.ProductEndDateExceededException;
 import OUA.OUA_V1.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,8 +42,26 @@ public class ProductService {
         }
     }
 
-    public Product findById(Long id) {
+    public ProductResponse findById(Long id) {
         return productRepository.findById(id)
+                .map(this::toProductResponse)
                 .orElseThrow(ProductNotFoundException::new);
+    }
+
+    public Page<ProductResponse> getProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(this::toProductResponse);
+    }
+
+    private ProductResponse toProductResponse(Product product) {
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getInitialPrice(),
+                product.getBuyNowPrice(),
+                product.getEndDate(),
+                product.getImageUrls()
+        );
     }
 }
