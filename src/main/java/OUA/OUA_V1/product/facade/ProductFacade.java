@@ -5,6 +5,7 @@ import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.service.MemberService;
 import OUA.OUA_V1.product.controller.request.ProductImagesRequest;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
+import OUA.OUA_V1.product.controller.response.ProductResponse;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.exception.badRequest.ProductIllegalFileException;
 import OUA.OUA_V1.product.service.ProductService;
@@ -36,8 +37,8 @@ public class ProductFacade {
 
     @Transactional
     public void deleteProduct(Long productId) {
-        Product product = productService.findById(productId);
-        List<String> imageUrls = product.getImageUrls();
+        ProductResponse productResponse = productService.findById(productId);
+        List<String> imageUrls = productResponse.imageUrls();
         productService.deleteProduct(productId);
         deleteImages(imageUrls);
     }
