@@ -50,7 +50,11 @@ public class DataLoader implements ApplicationRunner {
         Product product2 = new Product(member, "product2", "테스트용 product2입니다.", 123456,
                 999999, LocalDateTime.now().plusDays(7), dummyImageUrls);
 
+        Product product3 = new Product(member2, "product3", "테스트용 product3입니다.", 123456,
+                999999, LocalDateTime.now().plusDays(7), dummyImageUrls);
+
         productRepository.save(product);
         productRepository.save(product2);
+        productRepository.save(product3);
     }
 }
