@@ -48,7 +48,7 @@ public class ProductController {
     @GetMapping("/products")
     public ResponseEntity<PagedModel<ProductResponse>> getProducts(
             @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.DESC)Pageable pageable) {
-        Page<ProductResponse> products = productService.getProducts(pageable);
+        Page<ProductResponse> products = productService.getProductsForSale(pageable);
         return ResponseEntity.ok(new PagedModel<>(products));
     }
 

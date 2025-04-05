@@ -4,6 +4,7 @@ import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
 import OUA.OUA_V1.product.controller.response.ProductResponse;
 import OUA.OUA_V1.product.domain.Product;
+import OUA.OUA_V1.product.domain.ProductStatus;
 import OUA.OUA_V1.product.exception.ProductNotFoundException;
 import OUA.OUA_V1.product.exception.badRequest.ProductEndDateExceededException;
 import OUA.OUA_V1.product.repository.ProductRepository;
@@ -48,8 +49,8 @@ public class ProductService {
                 .orElseThrow(ProductNotFoundException::new);
     }
 
-    public Page<ProductResponse> getProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
+    public Page<ProductResponse> getProductsForSale(Pageable pageable) {
+        return productRepository.findAllByStatus(ProductStatus.FOR_SALE, pageable)
                 .map(this::toProductResponse);
     }
 
