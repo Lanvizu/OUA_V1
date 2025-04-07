@@ -52,9 +52,11 @@ public class Product extends BaseEntity implements SecureResource {
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ProductStatus status;
+    @Column(name = "on_sale", nullable = false)
+    private Boolean onSale;
+
+    @Column(name = "category_id", nullable = false)
+    private Integer categoryId;
 
     @ElementCollection
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
@@ -63,16 +65,18 @@ public class Product extends BaseEntity implements SecureResource {
 
     //즐겨찾기 수 추후 추가
 
-    public Product(Member member, String name, String description, int initialPrice, int buyNowPrice, LocalDateTime endDate, List<String> imageUrls) {
+    public Product(Member member, String name, String description, int initialPrice, int buyNowPrice,
+                   LocalDateTime endDate, Integer categoryId, List<String> imageUrls) {
         this.member = member;
         validateName(name);
         this.name = name;
         this.description = description;
         this.initialPrice = initialPrice;
         this.buyNowPrice = buyNowPrice;
-        this.status = ProductStatus.FOR_SALE;
+        this.onSale = true;
         this.startDate = LocalDateTime.now();
         this.endDate = endDate;
+        this.categoryId = categoryId;
         this.imageUrls = imageUrls;
     }
 

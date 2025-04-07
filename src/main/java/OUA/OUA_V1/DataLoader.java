@@ -3,6 +3,7 @@ package OUA.OUA_V1;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.repository.MemberRepository;
 import OUA.OUA_V1.product.domain.Product;
+import OUA.OUA_V1.product.domain.ProductCategory;
 import OUA.OUA_V1.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
@@ -45,13 +46,13 @@ public class DataLoader implements ApplicationRunner {
                 "https://mock-gcp-url.com/image2.jpg"
         );
         Product product = new Product(member, "product", "테스트용 product입니다.", 100000,
-                999999, LocalDateTime.now().plusDays(7), dummyImageUrls);
+                999999, LocalDateTime.now().plusDays(7), ProductCategory.BOOKS.getCategoryId(), dummyImageUrls);
 
         Product product2 = new Product(member, "product2", "테스트용 product2입니다.", 123456,
-                999999, LocalDateTime.now().plusDays(7), dummyImageUrls);
+                999999, LocalDateTime.now().plusDays(7), ProductCategory.BEAUTY_CARE.getCategoryId(), dummyImageUrls);
 
         Product product3 = new Product(member2, "product3", "테스트용 product3입니다.", 123456,
-                999999, LocalDateTime.now().plusDays(7), dummyImageUrls);
+                999999, LocalDateTime.now().plusDays(7), ProductCategory.BUYING_REQUESTS.getCategoryId(), dummyImageUrls);
 
         productRepository.save(product);
         productRepository.save(product2);

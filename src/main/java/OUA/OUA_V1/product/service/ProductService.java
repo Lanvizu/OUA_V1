@@ -4,7 +4,6 @@ import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
 import OUA.OUA_V1.product.controller.response.ProductResponse;
 import OUA.OUA_V1.product.domain.Product;
-import OUA.OUA_V1.product.domain.ProductStatus;
 import OUA.OUA_V1.product.exception.ProductNotFoundException;
 import OUA.OUA_V1.product.exception.badRequest.ProductEndDateExceededException;
 import OUA.OUA_V1.product.repository.ProductRepository;
@@ -28,7 +27,7 @@ public class ProductService {
     public Product registerProduct(Member member, ProductRegisterRequest request, List<String> imageUrls) {
         validateEndDate(request.endDate());
         Product product = new Product(member, request.name(), request.description(), request.initialPrice(),
-                request.buyNowPrice(), request.endDate(), imageUrls);
+                request.buyNowPrice(), request.endDate(), request.categoryId(), imageUrls);
         return productRepository.save(product);
     }
 
@@ -49,8 +48,9 @@ public class ProductService {
                 .orElseThrow(ProductNotFoundException::new);
     }
 
-    public Page<ProductResponse> getProductsForSale(Pageable pageable) {
-        return productRepository.findAllByStatus(ProductStatus.FOR_SALE, pageable)
+    public Page<ProductResponse> getProductsByFilters(String keyword, Boolean onSale,
+                                                      Integer categoryId, Pageable pageable) {
+        return productRepository.findAllByFilters(keyword, onSale, categoryId, pageable)
                 .map(this::toProductResponse);
     }
 
@@ -62,6 +62,7 @@ public class ProductService {
                 product.getInitialPrice(),
                 product.getBuyNowPrice(),
                 product.getEndDate(),
+                product.getCategoryId(),
                 product.getImageUrls()
         );
     }

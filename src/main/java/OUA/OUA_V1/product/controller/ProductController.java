@@ -47,8 +47,11 @@ public class ProductController {
 
     @GetMapping("/products")
     public ResponseEntity<PagedModel<ProductResponse>> getProducts(
-            @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.DESC)Pageable pageable) {
-        Page<ProductResponse> products = productService.getProductsForSale(pageable);
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean onSale,
+            @RequestParam(required = false) Integer categoryId,
+            @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<ProductResponse> products = productService.getProductsByFilters(keyword, onSale, categoryId, pageable);
         return ResponseEntity.ok(new PagedModel<>(products));
     }
 

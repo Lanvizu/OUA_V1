@@ -18,7 +18,9 @@ public record ProductRegisterRequest(
         int buyNowPrice,
 
         @NotBlank(message = "경매 종료 시간을 설정해주세요")
-        LocalDateTime endDate
+        LocalDateTime endDate,
 
+        @NotBlank(message = "카테고리를 설정해주세요")
+        Integer categoryId
 ) {
 }

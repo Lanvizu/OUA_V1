@@ -10,6 +10,7 @@ public record ProductResponse(
         int initialPrice,
         int buyNowPrice,
         LocalDateTime endDate,
+        Integer categoryId,
         List<String> imageUrls
 ) {
 }
