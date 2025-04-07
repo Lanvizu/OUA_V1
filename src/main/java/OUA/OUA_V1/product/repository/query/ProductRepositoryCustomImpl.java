@@ -1,56 +1,79 @@
 package OUA.OUA_V1.product.repository.query;
 
 import OUA.OUA_V1.product.domain.Product;
-import OUA.OUA_V1.product.domain.ProductStatus;
 import OUA.OUA_V1.product.domain.QProduct;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
+@RequiredArgsConstructor
 public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
-    public ProductRepositoryCustomImpl(JPAQueryFactory queryFactory) {
-        this.queryFactory = queryFactory;
-    }
-
     @Override
-    public Page<Product> findAllByStatus(ProductStatus status, Pageable pageable) {
+    public Page<Product> findAllByFilters(String keyword, Boolean onSale,
+                                          Integer categoryId, Pageable pageable) {
         QProduct product = QProduct.product;
 
-        BooleanExpression forSale = isStatusEqual(status);
+        BooleanExpression predicate = createPredicate(product, keyword, onSale, categoryId);
 
         List<Product> products = queryFactory
                 .selectFrom(product)
-                .where(forSale)
+                .where(predicate)
+                .orderBy(product.createdDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        Long totalCount = queryFactory
-                .select(product.count())
-                .from(product)
-                .where(forSale)
-                .fetchOne();
+        long totalCount = Optional.ofNullable(
+                queryFactory
+                        .select(product.countDistinct())
+                        .from(product)
+                        .where(predicate)
+                        .fetchOne()
+        ).orElse(0L);
 
-        long total = (totalCount != null) ? totalCount : 0;
-
-        return new PageImpl<>(products, pageable, total);
+        return new PageImpl<>(products, pageable, totalCount);
     }
 
-    /**
-     * 상태 조건을 생성하는 메서드
-     */
-    private BooleanExpression isStatusEqual(ProductStatus status) {
-        if (status == null) {
-            return null; // 조건이 없으면 전체 조회
-        }
-        QProduct product = QProduct.product;
-        return product.status.eq(status);
+    private BooleanExpression createPredicate(
+            QProduct product,
+            String keyword,
+            Boolean onSale,
+            Integer categoryId
+    ) {
+        BooleanExpression predicate = Expressions.asBoolean(true).isTrue();
+
+        predicate = predicate.and(containsKeyword(product, keyword));
+        predicate = predicate.and(isOnSaleEqual(product, onSale));
+        predicate = predicate.and(isCategoryEqual(product, categoryId));
+
+        return predicate;
+    }
+
+    private BooleanExpression containsKeyword(QProduct product, String keyword) {
+        return (keyword != null && !keyword.isEmpty())
+                ? product.name.containsIgnoreCase(keyword)
+                : null;
+    }
+
+    private BooleanExpression isOnSaleEqual(QProduct product, Boolean onSale) {
+        return (onSale != null)
+                ? product.onSale.eq(onSale)
+                : null;
+    }
+
+    private BooleanExpression isCategoryEqual(QProduct product, Integer categoryId) {
+        return (categoryId != null)
+                ? product.categoryId.eq(categoryId)
+                : null;
     }
 }
