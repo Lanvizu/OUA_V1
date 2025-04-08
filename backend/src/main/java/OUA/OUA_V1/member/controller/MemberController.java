@@ -32,9 +32,9 @@ public class MemberController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<Void> signup(@RequestBody @Valid MemberCreateRequest request) {
-        Long memberId = memberFacade.create(request);
-        // created를 통해 201 응답을 설정,
+    public ResponseEntity<Void> signup(@RequestBody @Valid MemberCreateRequest request,
+                                       @CookieValue(name = "authToken", required = true) String token) {
+        Long memberId = memberFacade.create(request, token);
         return ResponseEntity.created(URI.create("/v1/members/" + memberId)).build();
     }
 }

@@ -68,8 +68,7 @@ public class MemberFacade {
     }
 
     @Transactional
-    public Long create(MemberCreateRequest request) {
-        String token = request.token();
+    public Long create(MemberCreateRequest request, String token) {
         if (token == null || !tokenProvider.isAlive(token)) {
             throw new RuntimeException("유효하지 않은 인증 토큰입니다.");
         }
