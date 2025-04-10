@@ -1,28 +1,25 @@
 import React, { useState } from 'react';
-import './SignUpPage.css';
+import './UpdatePasswordPage.css';
 import IconEyePrivate from '../../assets/images/icon-eye-private.png';
 import IconEyePublic from '../../assets/images/icon-eye-public.png';
 
-const SignUpPage = () => {
+const ChangePasswordPage = () => {
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-  const [name, setName] = useState('');
-  const [nickName, setNickName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordMessage, setPasswordMessage] = useState('');
-  const [phone, setPhone] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // 이메일 인증 요청
+    // 이메일 인증 요청
   const handleEmailSubmit = async () => {
     try {
-      const response = await fetch('/v1/members/email-verification', {
+      const response = await fetch('/v1/members/password-update-email-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -71,45 +68,40 @@ const SignUpPage = () => {
     }
   };
 
-  // 회원가입 요청
-  const handleSignUpSubmit = async () => {
-    try {
+  // 비밀번호 변경 요청
+  const handleUpdatePasswordSubmit = async () => {
+    try{
       if (password !== confirmPassword) {
         alert('비밀번호가 일치하지 않습니다. 다시 확인해주세요.');
         return;
       }
+      const token = document.cookie.split('; ').find((row) => row.startsWith('authToken='))?.split('=')[1];
 
-      const token = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('authToken='))
-        ?.split('=')[1];
-
-      if (!token) {
+      if(!token) {
         alert('토큰을 찾을 수 없습니다. 이메일 인증을 다시 진행해주세요.');
         return;
       }
-
-      const response = await fetch('/v1/members/signup', {
+      const response = await fetch('/v1/members/update-password', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, 
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ email, name, nickName, password, phone }),
+        body: JSON.stringify({ email, password }),
       });
 
-      if (response.ok) {
-        alert('회원가입이 완료되었습니다!');
+      if(response.ok){
+        alert('비밀번호가 성공적으로 변경되었습니다!');
         document.cookie = "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         window.location.href = '/main';
-      } else {
+      }else{
         const errorData = await response.json();
-        const errorMessage = errorData.detail || errorData.title || '회원가입에 실패했습니다.';
+        const errorMessage = errorData.detail || errorData.title || '비밀번호 변경에 실패했습니다.';
         alert(`오류: ${errorMessage} (상태 코드: ${errorData.status})`);
         console.error(`오류 세부 정보: ${JSON.stringify(errorData)}`);
       }
-    } catch (error) {
-      console.error('회원가입 요청 중 오류 발생:', error);
+    }catch (error) {
+      console.error('비밀번호 변경 요청 중 오류 발생:', error);
       alert('예기치 못한 오류가 발생했습니다.');
     }
   };
@@ -127,41 +119,39 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className="signup-page">
-      <div className='signup-title-box'>
-        <span className='signup-title'>회원가입</span>
+    <div className="update-password-page">
+      <div className='update-password-title-box'>
+        <span className='update-password-title'>비밀번호 찾기</span>
+        <span className="update-password-subtitle">가입하신 이메일 주소를 본인 인증하고 비밀번호를 재설정해 주세요.</span>
       </div>
 
       {/* 이메일 입력 및 전송 */}
-      <div className='email-input-form'>
-        <div className="form-group-inline">
-          <label htmlFor="email" className="form-label">
-            이메일 <span className="required">*</span>
-          </label>
-          <div className="input-with-button">
-            <input
+      {!isVerified && (
+        <div className='email-input-form2'>
+          <div className="form-group">
+            <div className="input-with-button">
+              <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isVerified}
-              className={`email-input ${isVerified ? 'input-disabled' : ''}`}
+              className={"email-input"}
               placeholder="이메일"
-            />
-            <button
+              />
+              <button
               onClick={handleEmailSubmit}
               className={`submit-button ${isVerified ? 'button-disabled' : ''}`}
               disabled={!email.trim() || isVerified}
-            >
+              >
               {isVerified ? '인증 완료' : isEmailSent ? '재전송' : '인증 요청'}
-            </button>
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* 인증 코드 입력 */}
-        {isEmailSent && !isVerified && (
-          <div className="form-group-inline">
+          {/* 인증 코드 입력 */}
+          <div className="form-group">
             <div className="input-with-button">
               <input
                 type="text"
@@ -170,8 +160,7 @@ const SignUpPage = () => {
                 onChange={(e) => setVerificationCode(e.target.value)}
                 placeholder="인증번호 입력"
                 required
-                disabled={!isEmailSent}
-                className={`verification-code-input ${!isEmailSent ? 'input-disabled' : ''}`}
+                className={"verification-code-input"}
               />
               <button
                 onClick={handleCodeSubmit}
@@ -182,133 +171,76 @@ const SignUpPage = () => {
               </button>
             </div>
           </div>
-        )}
-      </div>
-
-      <div className="signup-form">
-        {/* 이름 입력 */}
-        <div className="form-group-inline">
-          <label htmlFor="name" className="form-label">
-            이름 <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="text-input"
-            placeholder="이름 입력"
-          />
         </div>
+      )}
 
-        {/* 닉네임 입력 */}
-        <div className="form-group-inline">
-          <label htmlFor="nickName" className="form-label">
-            닉네임 <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="nickName"
-            value={nickName}
-            onChange={(e) => setNickName(e.target.value)}
-            required
-            className="text-input"
-            placeholder="닉네임 입력"
-          />
-        </div>
-
-        {/* 비밀번호 입력 */}
-        <div className="form-group-inline password-input-group">
-          <label htmlFor="password" className="form-label">
-            비밀번호 <span className="required">*</span>
-          </label>
-          <p className="password-guide">영문, 숫자, 특수문자 포함 8~30자로 입력해 주세요.</p>
-          <div className="password-input-wrapper">
-            <input
+      {isEmailSent && isVerified && (
+        <div className="update-password-form">
+          <div className='update-password-form-box'>
+          {/* 비밀번호 입력 */}
+            <div className="password-input-wrapper">
+              <input
               type={showPassword ? 'text' : 'password'}
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               className="text-input"
-              placeholder="비밀번호 입력"
-            />
-            <button
+              placeholder="새 비밀번호"
+              />
+              <button
               type="button"
               className="password-toggle"
               onClick={() => setShowPassword(!showPassword)}
-            >
+              >
               <img
-                src={showPassword ? IconEyePublic : IconEyePrivate}
-                alt={showPassword ? '비밀번호 표시' : '비밀번호 숨김'}
-                className="password-icon"
+                  src={showPassword ? IconEyePublic : IconEyePrivate}
+                  alt={showPassword ? '비밀번호 표시' : '비밀번호 숨김'}
+                  className="password-icon"
               />
-            </button>
-          </div>
-        </div>
+              </button>
+            </div>
 
-        {/* 비밀번호 확인 */}
-        <div className="form-group-inline password-input-group">
-          <label htmlFor="confirm-password" className="form-label">
-            비밀번호 확인 <span className="required">*</span>
-          </label>
-          <div className="password-input-wrapper">
-            <input
+          {/* 비밀번호 확인 */}
+            <div className="password-input-wrapper">
+              <input
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirm-password"
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
               required
               className="text-input"
-              placeholder="비밀번호 확인"
-            />
-            <button
+              placeholder="새 비밀번호 확인"
+              />
+              <button
               type="button"
               className="password-toggle"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
+              >
               <img
-                src={showConfirmPassword ? IconEyePublic : IconEyePrivate}
-                alt={showConfirmPassword ? '비밀번호 표시' : '비밀번호 숨김'}
-                className="password-icon"
+                  src={showConfirmPassword ? IconEyePublic : IconEyePrivate}
+                  alt={showConfirmPassword ? '비밀번호 표시' : '비밀번호 숨김'}
+                  className="password-icon"
               />
-            </button>
-          </div>
-          {passwordMessage && (
-            <small
+              </button>
+            </div>
+            {passwordMessage && (
+              <small
               className={`password-message ${
-                password === confirmPassword ? 'match' : 'mismatch'
+                  password === confirmPassword ? 'match' : 'mismatch'
               }`}
-            >
+              >
               {passwordMessage}
-            </small>
-          )}
+              </small>
+            )}
+          </div>
+          <button onClick={handleUpdatePasswordSubmit} className="update-password-button">
+          비밀번호 변경
+          </button>
         </div>
-
-        {/* 전화번호 입력 */}
-        <div className="form-group-inline">
-          <label htmlFor="phone" className="form-label">
-            전화번호 <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="phone"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-            className="text-input"
-            placeholder="'-' 없이 입력하세요."
-          />
-        </div>
-
-        {/* 회원가입 버튼 */}
-        <button onClick={handleSignUpSubmit} className="register-button">
-          계정 만들기
-        </button>
-      </div>
+      )}
     </div>
   );
 };
 
-export default SignUpPage;
+export default ChangePasswordPage;

@@ -4,11 +4,13 @@ import LandingPage from './pages/Landing/LandingPage';
 import SignInPage from './pages/SignIn/SignInPage';
 import SignUpPage from './pages/SignUp/SignUpPage';
 import MainPage from './pages/Main/MainPage';
+import UpdatePasswordPage from './pages/UpdatePassword/UpdatePasswordPage';
+import Navbar from './components/Navbar/Navbar';
 
 function App() {
   return (
     <Router>
-      <div className="App">
+      <Navbar />
         <Routes>
           {/* 랜딩 페이지 */}
           <Route path="/" element={<LandingPage />} />
@@ -21,8 +23,11 @@ function App() {
 
           {/* 회원가입 페이지 */}
           <Route path="/signup" element={<SignUpPage />} />
+
+          {/* 비밀번호 찾기 페이지 */}
+          <Route path="/update-password" element={<UpdatePasswordPage />} />
+
         </Routes>
-      </div>
     </Router>
   );
 }

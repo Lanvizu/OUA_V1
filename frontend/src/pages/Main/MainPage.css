@@ -1,8 +1,8 @@
 .main-container {
     font-family: Arial, sans-serif;
     text-align: center;
-    padding: 20px;
-    background-color: #f9f9f9;
+    padding: 24px;
+    min-height: 100%;
   }
   
   .main-header {
