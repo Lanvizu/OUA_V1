@@ -57,6 +57,10 @@ public class Member extends BaseEntity {
         this.role = role;
     }
 
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
     private void validatePhoneNumber(String phoneNumber) {
         if (!VALID_PHONE_NUMBER_PATTERN.matcher(phoneNumber).matches()) {
             throw new MemberIllegalPhoneNumberException();

@@ -32,6 +32,13 @@ public class MemberService {
         return memberRepository.save(savedMember);
     }
 
+    @Transactional
+    public void updatePassword(String email, String password) {
+        Member member = findByEmail(email);
+        String encodedPassword = generateEncoderPassword(password);
+        member.updatePassword(encodedPassword);
+    }
+
     private String generateEncoderPassword(String rawPassword) {
         validatePassword(rawPassword);
         return passwordValidator.encode(rawPassword);
