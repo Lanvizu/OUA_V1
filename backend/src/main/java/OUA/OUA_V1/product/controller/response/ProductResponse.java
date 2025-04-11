@@ -11,6 +11,7 @@ public record ProductResponse(
         int buyNowPrice,
         LocalDateTime endDate,
         Integer categoryId,
-        List<String> imageUrls
+        List<String> imageUrls,
+        boolean isOwner
 ) {
 }
