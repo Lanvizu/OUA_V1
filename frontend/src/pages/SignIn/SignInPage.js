@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import './SignInPage.css';
 import IconEyePrivate from '../../assets/images/icon-eye-private.png';
 import IconEyePublic from '../../assets/images/icon-eye-public.png';
+import { AuthContext } from '../../context/AuthContext';
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const { setIsLoggedIn } = useContext(AuthContext);
 
   const handleSignInSubmit = async () => {
     if (!email.trim() || !password.trim()) {
@@ -24,6 +26,7 @@ const SignInPage = () => {
 
       if (response.ok) {
         alert('로그인에 성공했습니다!');
+        setIsLoggedIn(true);
         window.location.href = '/main';
       } else {
         const errorData = await response.json();
@@ -45,7 +48,6 @@ const SignInPage = () => {
       </div>
 
       <form className="signin-form" onSubmit={(e) => { e.preventDefault(); handleSignInSubmit(); }}>
-        {/* 이메일 입력 */}
         <div className="email-group-inline">
           <input
             type="email"
@@ -57,8 +59,6 @@ const SignInPage = () => {
             placeholder="이메일"
           />
         </div>
-
-        {/* 비밀번호 입력 */}
         <div className="password-input-group">
           <div className="password-input-wrapper">
             <input
@@ -84,15 +84,14 @@ const SignInPage = () => {
           </div>
         </div>
         <div className='signin-button-group'>
-          {/* 로그인 버튼 */}
-          <button onClick={handleSignInSubmit} className="signin-button">
+          <button type="submit" className="signin-button">
             로그인
           </button>
         </div>
       </form>  
       <div className="signin-separator"></div>
       <div className="signin-footer">
-        <a href="/update-password" className="signin-reset-password-link">비밀번호 찾기</a>
+        <a href="/password-update" className="signin-reset-password-link">비밀번호 찾기</a>
         <div className="signin-footer-separator"></div>
         <a href="/signup" className="signin-register-link">계정 만들기</a>
       </div>

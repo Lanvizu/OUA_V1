@@ -2,7 +2,7 @@ package OUA.OUA_V1.product.service;
 
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
-import OUA.OUA_V1.product.controller.response.ProductResponse;
+import OUA.OUA_V1.product.controller.response.ProductPreviewResponse;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.exception.ProductNotFoundException;
 import OUA.OUA_V1.product.exception.badRequest.ProductEndDateExceededException;
@@ -42,27 +42,24 @@ public class ProductService {
         }
     }
 
-    public ProductResponse findById(Long id) {
+    public Product findById(Long id) {
         return productRepository.findById(id)
-                .map(this::toProductResponse)
                 .orElseThrow(ProductNotFoundException::new);
     }
 
-    public Page<ProductResponse> getProductsByFilters(String keyword, Boolean onSale,
+    public Page<ProductPreviewResponse> getProductsByFilters(String keyword, Boolean onSale,
                                                       Integer categoryId, Pageable pageable) {
         return productRepository.findAllByFilters(keyword, onSale, categoryId, pageable)
-                .map(this::toProductResponse);
+                .map(this::toProductPreviewResponse);
     }
 
-    private ProductResponse toProductResponse(Product product) {
-        return new ProductResponse(
+    private ProductPreviewResponse toProductPreviewResponse(Product product) {
+        return new ProductPreviewResponse(
                 product.getId(),
                 product.getName(),
-                product.getDescription(),
                 product.getInitialPrice(),
                 product.getBuyNowPrice(),
                 product.getEndDate(),
-                product.getCategoryId(),
                 product.getImageUrls()
         );
     }

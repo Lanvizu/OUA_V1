@@ -37,8 +37,8 @@ public class ProductFacade {
 
     @Transactional
     public void deleteProduct(Long productId) {
-        ProductResponse productResponse = productService.findById(productId);
-        List<String> imageUrls = productResponse.imageUrls();
+        Product product = productService.findById(productId);
+        List<String> imageUrls = product.getImageUrls();
         productService.deleteProduct(productId);
         deleteImages(imageUrls);
     }
@@ -64,5 +64,25 @@ public class ProductFacade {
             throw new ProductIllegalFileException();
         }
         return gcpStorageService.uploadImage(file);
+    }
+
+    public ProductResponse getProductWithOwnershipCheck(Long productId, Long memberId) {
+        Product product = productService.findById(productId);
+        boolean isOwner = product.getMember().getId().equals(memberId);
+        return toProductResponse(product, isOwner);
+    }
+
+    private ProductResponse toProductResponse(Product product, boolean isOwner) {
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getInitialPrice(),
+                product.getBuyNowPrice(),
+                product.getEndDate(),
+                product.getCategoryId(),
+                product.getImageUrls(),
+                isOwner
+        );
     }
 }

@@ -22,7 +22,7 @@ public enum ProductCategory {
     HEALTH_SUPPLEMENTS(316, "건강기능식품"),
     PET_SUPPLIES(317, "반려동물용품"),
     PLANTS(318, "식물"),
-    OTHER_USED_ITEMS(319, "기타 중고물품"),
+    OTHER_USED_ITEMS(319, "기타"),
     BUYING_REQUESTS(320, "삽니다");
 
     private final Integer categoryId;

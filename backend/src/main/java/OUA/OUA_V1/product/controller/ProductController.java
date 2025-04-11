@@ -1,9 +1,11 @@
 package OUA.OUA_V1.product.controller;
 
+import OUA.OUA_V1.auth.annotation.LoginMember;
 import OUA.OUA_V1.auth.annotation.RequireAuthCheck;
 import OUA.OUA_V1.global.LoginProfile;
 import OUA.OUA_V1.product.controller.request.ProductImagesRequest;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
+import OUA.OUA_V1.product.controller.response.ProductPreviewResponse;
 import OUA.OUA_V1.product.controller.response.ProductResponse;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.facade.ProductFacade;
@@ -29,10 +31,10 @@ public class ProductController {
 
     @PostMapping("/product/register")
     public ResponseEntity<Void> registerProduct(
-            @RequestParam("memberId") Long memberId,
+            @LoginMember Long MemberId,
             ProductRegisterRequest productRequest,
             ProductImagesRequest imagesRequest) {
-        Long productId = productFacade.registerProduct(memberId, productRequest, imagesRequest);
+        Long productId = productFacade.registerProduct(MemberId, productRequest, imagesRequest);
         return ResponseEntity.created(URI.create("/v1/product/" + productId)).build();
     }
 
@@ -46,19 +48,20 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-    public ResponseEntity<PagedModel<ProductResponse>> getProducts(
+    public ResponseEntity<PagedModel<ProductPreviewResponse>> getProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean onSale,
             @RequestParam(required = false) Integer categoryId,
             @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<ProductResponse> products = productService.getProductsByFilters(keyword, onSale, categoryId, pageable);
+        Page<ProductPreviewResponse> products = productService.getProductsByFilters(keyword, onSale, categoryId, pageable);
         return ResponseEntity.ok(new PagedModel<>(products));
     }
 
     @GetMapping("product/{productId}")
     public ResponseEntity<ProductResponse> getProduct(
-            @PathVariable("productId") Long productId) {
-        ProductResponse productResponse = productService.findById(productId);
+            @PathVariable("productId") Long productId,
+            @LoginMember Long memberId) {
+        ProductResponse productResponse = productFacade.getProductWithOwnershipCheck(productId, memberId);
         return ResponseEntity.ok(productResponse);
     }
 }
