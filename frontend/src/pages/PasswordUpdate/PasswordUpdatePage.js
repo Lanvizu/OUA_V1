@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import './UpdatePasswordPage.css';
+import './PasswordUpdatePage.css';
 import IconEyePrivate from '../../assets/images/icon-eye-private.png';
 import IconEyePublic from '../../assets/images/icon-eye-public.png';
 
-const ChangePasswordPage = () => {
+const PasswordUpdatePage = () => {
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isEmailSent, setIsEmailSent] = useState(false);
@@ -243,4 +243,4 @@ const ChangePasswordPage = () => {
   );
 };
 
-export default ChangePasswordPage;
+export default PasswordUpdatePage;

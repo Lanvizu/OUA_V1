@@ -1,0 +1,122 @@
+.product-register-container {
+    display: flex;
+    padding: 24px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    font-family: 'Arial', sans-serif;
+}
+
+.product-register-title-box {
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0px 16px;
+    max-width: 450px;
+    width: 100%;
+}
+
+.product-register-title {
+    color: rgb(52, 59, 70);
+    font-size: 28px;
+    line-height: 42px;
+    font-weight: 700;
+}
+
+.product-register-subtitle {
+  color: rgb(80, 87, 102);
+  font-size: 14px;
+  line-height: 160%;
+}
+
+.product-register-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.product-register-form-inline {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 450px;
+}
+
+.product-register-form-label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.product-register-required {
+    color: red;
+}
+
+.product-register-button {
+    width: 100%;
+    max-width: 450px;
+    height: 40px;
+    padding: 0;
+    border-radius: 5px;
+    background-color: #444242;
+    color: white;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.product-register-button:hover {
+    background-color: #000000;
+}
+  
+  
+  .product-register-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .product-register-form .form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .product-register-form label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .product-register-form input,
+  .product-register-form textarea,
+  .product-register-form button {
+    width: calc(100% - 20px);
+    padding: 10px;
+  }
+  
+  .product-register-form input,
+  .product-register-form textarea {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .product-register-form textarea {
+    resize: none;
+  }
+  
+.form-group .react-select__menu {
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .form-group .react-select__option--is-focused {
+    background-color: #f8f9fa;
+  }
+  
+  .form-group .react-select__option--is-selected {
+    background-color: #007bff;
+    color: white;
+  }
+  
