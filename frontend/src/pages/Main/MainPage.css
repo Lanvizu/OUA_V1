@@ -1,57 +1,213 @@
+/* 기본 리셋 및 폰트 설정 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
 .main-container {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 24px;
-    min-height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.main-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px 0;
+  border-bottom: 2px solid #eee;
+}
+
+.main-header h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* 상품 목록 스타일 */
+.product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 25px;
+  padding: 20px 0;
+}
+.product-card-image {
+  width: 100%;
+  height: auto;
+  border-radius: 12px 12px 0 0;
+}
+
+.product-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+/* 이미지 영역 */
+.image-container {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* 1:1 비율 유지 */
+  background: #f8f9fa;
+}
+
+.product-image, .placeholder-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 이미지 비율 유지 */
+  border-radius: 12px 12px 0 0;
+}
+
+.placeholder-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9ecef;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* 상품 정보 영역 */
+.product-info {
+  padding: 15px;
+}
+
+.product-card-info {
+  padding: 0px 10px;
+}
+
+.product-price-box{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.product-name {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-price {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.product-end-date {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin-top: 12px;
+  margin-bottom: 5px;
+  text-align: right;
+}
+
+/* 페이지네이션 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+  gap: 15px;
+}
+
+.pagination button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  background: #3498db;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.pagination button:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.pagination button:not(:disabled):hover {
+  background: #2980b9;
+}
+
+.pagination span {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
   }
   
-  .main-header {
-    margin-bottom: 20px;
-  }
-  
-  .main-header h1 {
-    font-size: 2rem;
-    color: #333;
-  }
-  
-  .main-header p {
-    font-size: 1.2rem;
-    color: #666;
-  }
-  
-  .main-content {
-    margin: 20px auto;
-  }
-  
-  .main-content p {
+  .product-name {
     font-size: 1rem;
-    color: #555;
   }
   
-  .button-group {
-    margin-top: 20px;
+  .pagination {
+    flex-direction: column;
   }
-  
-  .main-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    margin: 5px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .main-button:hover {
-    background-color: #0056b3;
-  }
-  
-  .main-footer {
-    margin-top: 30px;
-  }
-  
-  .main-footer p {
-    font-size: 0.9rem;
-    color: #aaa;
-  }
-  
+}
+
+/* 로딩 및 에러 상태 */
+.loading {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #3498db;
+  padding: 40px 0;
+}
+
+.error {
+  color: #e74c3c;
+  text-align: center;
+  padding: 20px 0;
+}
+/* 검색 필터 스타일 */
+.search-filter-container {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.search-filter-container input[type="text"] {
+  padding: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-filter-container select {
+  padding: 8px;
+  min-width: 150px;
+}
+
+.toggle-filter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.search-filter-container button {
+  padding: 8px 15px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

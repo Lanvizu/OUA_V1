@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import './ProductPage.css';
-import { CATEGORY_OPTIONS } from '../../contants/productCategoties';
+import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
 
 const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
 
@@ -13,6 +13,54 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showOptions, setShowOptions] = useState(false);
+  const [orderPrice, setOrderPrice] = useState('');
+
+  const [orderCount, setOrderCount] = useState(0);
+  const [showOrdersModal, setShowOrdersModal] = useState(false);
+  const [myOrder, setMyOrder] = useState(null);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState('');
+
+  const [ordersModalLoading, setOrdersModalLoading] = useState(false);
+  const [ordersModalError, setOrdersModalError] = useState('');
+  const [ordersModalData, setOrdersModalData] = useState({ content: [], page: {} });
+  const [ordersModalPage, setOrdersModalPage] = useState(0);
+
+  const handleOrder = async () => {
+    if (!orderPrice || isNaN(orderPrice) || parseInt(orderPrice) <= 0) {
+      alert('유효한 입찰가를 입력해주세요.');
+      return;
+    }
+
+    const confirmed = window.confirm(`${parseInt(orderPrice).toLocaleString()}원으로 입찰하시겠습니까?`);
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/v1/product/${productId}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderPrice: parseInt(orderPrice)
+        }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || errorData.title || '입찰에 실패했습니다.');
+      }
+
+      alert('입찰이 완료되었습니다!');
+      setOrderPrice('');
+    } catch (error) {
+      alert(error.message);
+      console.error('입찰 오류:', error);
+    }
+  };
 
   const handlePrev = () => {
     setCurrentImageIndex((prev) =>
@@ -79,12 +127,89 @@ const ProductPage = () => {
     fetchProduct();
   }, [productId]);
 
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    setOrdersError('');
+    try {
+      const response = await fetch(`/v1/product/${productId}/orders`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('주문 정보를 불러오는데 실패했습니다.');
+      const data = await response.json();
+      setOrderCount(data.productOrdersCount);
+      setMyOrder(data.myOrder);
+    } catch (err) {
+      setOrdersError(err.message);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [productId]);
+
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
 
+  const handleCancelOrder = async () => {
+    if (!myOrder) return;
+    if (!window.confirm("정말 입찰을 취소하시겠습니까?")) return;
+    
+    setCancelLoading(true);
+    setCancelError('');
+    try {
+      const response = await fetch(`/v1/orders/${myOrder.orderId}/cancel`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) throw new Error('입찰 취소에 실패했습니다.');
+      await fetchOrders();
+      window.alert('입찰이 취소되었습니다.');
+    } catch (err) {
+      setCancelError(err.message);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const fetchOrderDetails = async (page = 0) => {
+    setOrdersModalLoading(true);
+    setOrdersModalError('');
+    try {
+      const response = await fetch(`/v1/product/${productId}/total-orders?page=${page}&size=10`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('주문 내역을 불러오는데 실패했습니다.');
+      const data = await response.json();
+      setOrdersModalData(data);
+      setOrdersModalPage(page);
+    } catch (err) {
+      setOrdersModalError(err.message);
+    } finally {
+      setOrdersModalLoading(false);
+    }
+  };
+
+  const handleShowOrdersModal = () => {
+    setShowOrdersModal(true);
+    fetchOrderDetails(0);
+  };
+
+  const handleCloseOrdersModal = () => {
+    setShowOrdersModal(false);
+    setOrdersModalData({ content: [], page: {} });
+    setOrdersModalError('');
+  };
+
+  const handleOrdersModalPageChange = (newPage) => {
+    fetchOrderDetails(newPage);
+  };
+  
+
   return (
     <div className="product-container">
-      {/* 이미지 캐러셀 섹션 */}
       <div className="image-carousel">
         <button
           className="nav-button prev"
@@ -147,37 +272,42 @@ const ProductPage = () => {
 
       {/* 상품 정보 섹션 */}
       <div className="product-details">
-      <div className="product-header">
-        <h1 className="product-title">{product.name}</h1>
-        <div className="options-toggle">
-          <button
-            className="toggle-button"
-            onClick={() => setShowOptions((prev) => !prev)}
-          >
-            ⋮ 
-          </button>
+        <div className="product-header">
+          <h1 className="product-title">{product.name}</h1>
+          <div className="options-toggle">
+            <button
+              className="toggle-button"
+              onClick={() => setShowOptions((prev) => !prev)}
+            >
+              ⋮ 
+            </button>
 
-          {showOptions && (
-            <div className="options-menu">
-              {product.isOwner && (
-                <>
-                  <button
-                    className="delete-button"
-                    onClick={handleDeleteProduct}
-                    style={{ backgroundColor: 'red', color: 'white', marginTop: '10px' }}
-                  >
-                    상품 삭제하기
-                  </button>
-                </>
-              )}
-              <button className="option-button">옵션1</button>
-              <button className="option-button">옵션2</button> 
-              {/* 추후 구현 예정 */}
-            </div>
-          )}
+            {showOptions && (
+              <div className="options-menu">
+                {product.isOwner && (
+                  <>
+                    <button
+                      className="delete-button"
+                      onClick={handleDeleteProduct}
+                      style={{ backgroundColor: 'red', color: 'white', marginTop: '10px' }}
+                    >
+                      상품 삭제하기
+                    </button>
+                  </>
+                )}
+                <button className="option-button">옵션1</button>
+                <button className="option-button">옵션2</button> 
+                {/* 추후 구현 예정 */}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-        <p className="product-description">{product.description}</p>
+        <div className="info-category">
+          <span className="info-value category">
+            {CATEGORY_OPTIONS.find((opt) => opt.value === product.categoryId)?.label ||
+              '알 수 없는 카테고리'}
+          </span>
+        </div>
         <div className="price-section">
           <div className="price-item">
             <span className="price-label">경매 시작가</span>
@@ -193,22 +323,152 @@ const ProductPage = () => {
 
         <div className="info-box">
           <div className="info-item">
-            <span className="info-label">경매 종료 시간</span>
+            <span className="info-label">종료 시간</span>
             <span className="info-value">{new Date(product.endDate).toLocaleString()}</span>
           </div>
-          <div className="info-item">
-            <span className="info-label">카테고리</span>
-            <span className="info-value category">
-              {CATEGORY_OPTIONS.find((opt) => opt.value === product.categoryId)?.label ||
-                '알 수 없는 카테고리'}
-            </span>
-          </div>
+        </div>
+
+        {/* 주문 정보 섹션 */}
+        <div className="order-info-section">
+          {ordersLoading ? (
+            <div>주문 정보를 불러오는 중...</div>
+          ) : ordersError ? (
+            <div className="error">{ordersError}</div>
+          ) : (
+            <>
+              {/* 주문 수 및 상세 보기 버튼 */}
+              <div className="order-summary">
+                <span>총 입찰 건수: {orderCount}</span>
+                <button 
+                  onClick={handleShowOrdersModal}
+                  className="view-details-btn"
+                  disabled={orderCount === 0}
+                >
+                  {orderCount > 0 ? '[입찰 기록]' : '입찰 없음'}
+                </button>
+              </div>
+
+              {/* 주문 모달 창 */}
+              {showOrdersModal && (
+                <div className="modal-overlay">
+                  <div className="modal">
+                    <div className="modal-header">
+                      <h3>상세 입찰 내역</h3>
+                      <button onClick={handleCloseOrdersModal} className="modal-close-btn">×</button>
+                    </div>
+                    {ordersModalLoading ? (
+                      <div>로딩 중...</div>
+                    ) : ordersModalError ? (
+                      <div className="error">{ordersModalError}</div>
+                    ) : (
+                      <>
+                        <table className="orders-table">
+                          <thead>
+                            <tr>
+                              <th>주문번호</th>
+                              <th>입찰가</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {ordersModalData.content.length > 0 ? (
+                              ordersModalData.content.map((order) => (
+                                <tr key={order.orderId}>
+                                  <td>{order.orderId}</td>
+                                  <td>{order.orderPrice.toLocaleString()}원</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={3}>입찰 내역이 없습니다.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                        {/* 페이지네이션 */}
+                        <div className="modal-pagination">
+                          <button
+                            onClick={() => handleOrdersModalPageChange(ordersModalPage - 1)}
+                            disabled={ordersModalPage === 0}
+                          >
+                            이전
+                          </button>
+                          <span>
+                            {ordersModalPage + 1} / {ordersModalData.page.totalPages || 1}
+                          </span>
+                          <button
+                            onClick={() => handleOrdersModalPageChange(ordersModalPage + 1)}
+                            disabled={
+                              ordersModalData.page.totalPages
+                                ? ordersModalPage + 1 >= ordersModalData.page.totalPages
+                                : true
+                            }
+                          >
+                            다음
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 내 주문 정보 표시 */}
+              {myOrder && (
+                <div className="my-order-box">
+                  <span>내 입찰가: {myOrder.orderPrice.toLocaleString()}원</span>
+                  <button
+                    onClick={handleCancelOrder}
+                    disabled={cancelLoading}
+                    className="cancel-button"
+                  >
+                    {cancelLoading ? '취소 중...' : '취소'}
+                  </button>
+                  {cancelError && (
+                    <div style={{ color: 'red', marginTop: 4 }}>{cancelError}</div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
         </div>
         <div className="button-group">
-        <button className="bid-button">입찰하기</button>
-        <button className="buy-now-button">즉시 구매</button>
+          {!product.isOwner && (
+            <div className="order-section-vertical">
+              <div className="order-row">
+                <div className="order-input-group">
+                  <input
+                    type="number"
+                    value={orderPrice}
+                    onChange={(e) => setOrderPrice(e.target.value.replace(/\D/g, ''))}
+                    placeholder="입찰 가격 입력"
+                    className="order-input"
+                    min={product.initialPrice}
+                    disabled={!!myOrder}
+                  />
+                  <span className="input-suffix">원</span>
+                </div>
+                <div className="buy-now-price">
+                  <span className="buy-now-value">{product.buyNowPrice.toLocaleString()}</span>
+                  <span className="input-suffix">원</span>
+                </div>
+              </div>
+              <div className="order-row">
+                <button
+                  className="order-button"
+                  onClick={handleOrder}
+                  disabled={!orderPrice}
+                >
+                  입찰하기
+                </button>
+                <button className="buy-now-button">
+                  즉시 구매
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+      <p className="product-description">{product.description}</p>
     </div>
   );
 };

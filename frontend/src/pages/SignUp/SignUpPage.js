@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './SignUpPage.css';
 import IconEyePrivate from '../../assets/images/icon-eye-private.png';
 import IconEyePublic from '../../assets/images/icon-eye-public.png';
@@ -18,6 +19,7 @@ const SignUpPage = () => {
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
   // 이메일 인증 요청
   const handleEmailSubmit = async () => {
@@ -126,9 +128,14 @@ const SignUpPage = () => {
     }
   };
 
+  const handleBackClick = () => {
+    navigate(-1); // 이전 페이지로 이동
+  };
+
   return (
     <div className="signup-page">
       <div className='signup-title-box'>
+        <button className="back-button" onClick={handleBackClick}>이전으로</button>
         <span className='signup-title'>회원가입</span>
       </div>
 

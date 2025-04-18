@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './PasswordUpdatePage.css';
 import IconEyePrivate from '../../assets/images/icon-eye-private.png';
 import IconEyePublic from '../../assets/images/icon-eye-public.png';
@@ -15,6 +16,7 @@ const PasswordUpdatePage = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
     // 이메일 인증 요청
   const handleEmailSubmit = async () => {
@@ -118,9 +120,14 @@ const PasswordUpdatePage = () => {
     }
   };
 
+  const handleBackClick = () => {
+    navigate(-1); // 이전 페이지로 이동
+  };
+
   return (
     <div className="update-password-page">
       <div className='update-password-title-box'>
+        <button className="back-button" onClick={handleBackClick}>이전으로</button>
         <span className='update-password-title'>비밀번호 찾기</span>
         <span className="update-password-subtitle">가입하신 이메일 주소를 본인 인증하고 비밀번호를 재설정해 주세요.</span>
       </div>

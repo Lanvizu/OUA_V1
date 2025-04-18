@@ -35,7 +35,7 @@ const Navbar = () => {
       <nav className="navbar-links">
         <Link to="/product-register">상품 등록</Link>
         <Link to="/my-products">내 상품</Link>
-        <Link to="/my-auctions">내 경매</Link>
+        <Link to="/my-orders">내 경매</Link>
         {isLoggedIn ? (
           <button onClick={handleLogout} className="logout-button">
             로그아웃
