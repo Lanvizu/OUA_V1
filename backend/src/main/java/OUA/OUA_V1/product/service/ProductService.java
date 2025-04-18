@@ -53,6 +53,11 @@ public class ProductService {
                 .map(this::toProductPreviewResponse);
     }
 
+    public Page<ProductPreviewResponse> getProductsByMemberId(Long memberId, Pageable pageable) {
+        return productRepository.findAllByMemberId(memberId, pageable)
+                .map(this::toProductPreviewResponse);
+    }
+
     private ProductPreviewResponse toProductPreviewResponse(Product product) {
         return new ProductPreviewResponse(
                 product.getId(),

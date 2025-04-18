@@ -19,13 +19,7 @@
     gap: 10px;
   }
   
-  .product-image {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
+  
   
   .product-details {
     background: #fff;
@@ -36,7 +30,6 @@
   
   .product-title {
     font-size: 2rem;
-    margin-bottom: 20px;
     color: #333;
   }
   
@@ -48,15 +41,14 @@
   
   .price-section {
     background: #f8f9fa;
-    padding: 20px;
+    padding: 10px;
     border-radius: 8px;
-    margin-bottom: 25px;
   }
   
   .price-item {
     display: flex;
     justify-content: space-between;
-    margin: 10px 0;
+    margin: 5px 0;
   }
   
   .price-label {
@@ -75,14 +67,19 @@
   
   .info-box {
     border-top: 2px solid #eee;
-    padding-top: 20px;
     margin-top: 20px;
   }
   
   .info-item {
     display: flex;
     justify-content: space-between;
-    margin: 15px 0;
+    margin: 10px 0px;
+  }
+
+  .info-category {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 10px;
   }
   
   .info-label {
@@ -94,35 +91,6 @@
     font-weight: 500;
   }
   
-  .button-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-top: 30px;
-  }
-  
-  .bid-button, .buy-now-button {
-    padding: 15px;
-    border: none;
-    border-radius: 6px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  
-  .bid-button {
-    background: #3498db;
-    color: white;
-  }
-  
-  .buy-now-button {
-    background: #e74c3c;
-    color: white;
-  }
-  
-  .bid-button:hover, .buy-now-button:hover {
-    transform: translateY(-2px);
-  }
   /* 이미지 캐러셀 스타일 */
 .image-carousel {
     position: relative;
@@ -246,6 +214,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 10px;
   }
   
   .options-toggle {
@@ -278,4 +247,223 @@
   .delete-button {
       color:red
   }
-  
+
+  /* ProductPage.css 추가 스타일 */
+.order-section {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+.orders-table th, .orders-table td {
+  border: 1px solid #eee;
+  padding: 8px;
+  text-align: center;
+}
+.my-order-box {
+  margin-bottom: 8px;
+  background: #f5f7fa;
+  padding: 12px 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #2d6cdf;
+  display: flex;
+  justify-content: space-between;
+}
+.cancel-button {
+  margin-left: 12px;
+  padding: 4px 10px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background-color: #ff7875;
+}
+
+.cancel-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination {
+  margin-top: 16px;
+  text-align: center;
+  color: #666;
+}
+
+.error {
+  color: #ff4d4f;
+  padding: 8px;
+}
+.order-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0px 16px;
+}
+.view-details-btn {
+  background: none;
+  border: none;
+  color: #6b6f73;
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed; left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #fff; padding: 24px; border-radius: 10px; min-width: 320px; max-width: 600px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  position: relative;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+.modal-close-btn {
+  border: none; background: none; font-size: 1.5rem; cursor: pointer;
+}
+.modal-pagination {
+  display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 16px;
+}
+
+
+.button-group {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.order-section-vertical {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-row {
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+  width: 100%;
+}
+
+.order-input-group,
+.buy-now-price {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 12px 0px;
+}
+
+.order-input-group {
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.buy-now-price {
+  justify-content: center;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.order-input {
+  width: 100%;
+  font-size: 1rem;
+  border: none;
+  outline: none;
+  transition: border-color 0.2s;
+  text-align: center;
+  padding: 0px 35px;
+}
+
+.order-input:focus {
+  border-color: #007aff;
+}
+
+
+.buy-now-value {
+  font-weight: bold;
+  color: #e60023;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+}
+
+.order-button:hover, .buy-now-button:hover {
+  transform: translateY(-2px);
+}
+
+.order-button,
+.buy-now-button {
+  width: 100%;
+  padding: 12px 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.order-button:disabled {
+  background: #bfc9d1;
+  color: #fff;
+  cursor: not-allowed;
+  border: 1.5px solid #bfc9d1;
+}
+
+.buy-now-button {
+  background: #fff;
+  color: #ff2e4d;
+  border: 1.5px solid #ff2e4d;
+}
+
+.order-button {
+  background: #fff;
+  color: #007aff;
+  border: 1.5px solid #007aff;
+}
+
+.buy-now-button:hover{
+  background: #ff2e4d;
+  color: #fff;
+}
+.order-button:hover:not(:disabled) {
+  background: #007aff;
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .order-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .order-section-vertical {
+    gap: 10px;
+    max-width: 100%;
+  }
+}

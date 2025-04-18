@@ -35,7 +35,7 @@ public class ProductController {
             ProductRegisterRequest productRequest,
             ProductImagesRequest imagesRequest) {
         Long productId = productFacade.registerProduct(MemberId, productRequest, imagesRequest);
-        return ResponseEntity.created(URI.create("/v1/product/" + productId)).build();
+        return ResponseEntity.created(URI.create("/product/" + productId)).build();
     }
 
     @RequireAuthCheck(targetId = "productId", targetDomain = Product.class)
@@ -57,11 +57,19 @@ public class ProductController {
         return ResponseEntity.ok(new PagedModel<>(products));
     }
 
-    @GetMapping("product/{productId}")
+    @GetMapping("/product/{productId}")
     public ResponseEntity<ProductResponse> getProduct(
             @PathVariable("productId") Long productId,
             @LoginMember Long memberId) {
         ProductResponse productResponse = productFacade.getProductWithOwnershipCheck(productId, memberId);
         return ResponseEntity.ok(productResponse);
+    }
+
+    @GetMapping("/my-products")
+    public ResponseEntity<PagedModel<ProductPreviewResponse>> getMyProducts(
+            @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.DESC) Pageable pageable,
+            @LoginMember Long memberId) {
+        Page<ProductPreviewResponse> products = productService.getProductsByMemberId(memberId, pageable);
+        return ResponseEntity.ok(new PagedModel<>(products));
     }
 }

@@ -2,6 +2,8 @@ package OUA.OUA_V1;
 
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.repository.MemberRepository;
+import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.repository.OrderRepository;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.domain.ProductCategory;
 import OUA.OUA_V1.product.repository.ProductRepository;
@@ -21,6 +23,7 @@ public class DataLoader implements ApplicationRunner {
 
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
 
 //    @Value("${dataloader.enable}")
 //    private boolean enableDataLoader;
@@ -42,8 +45,8 @@ public class DataLoader implements ApplicationRunner {
         memberRepository.save(member2);
 
         List<String> dummyImageUrls = List.of(
-                "https://mock-gcp-url.com/image1.jpg",
-                "https://mock-gcp-url.com/image2.jpg"
+                "%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-02-24%20202531.png",
+                "%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-03-12%20140443.png"
         );
         Product product = new Product(member, "product", "테스트용 product입니다.", 100000,
                 999999, LocalDateTime.now().plusDays(7), ProductCategory.BOOKS.getCategoryId(), dummyImageUrls);
@@ -57,5 +60,13 @@ public class DataLoader implements ApplicationRunner {
         productRepository.save(product);
         productRepository.save(product2);
         productRepository.save(product3);
+
+        Order order = new Order(member, product3, 222222);
+        Order order2 = new Order(member2, product, 222222);
+        Order order3 = new Order(member2, product2, 333333);
+
+        orderRepository.save(order);
+        orderRepository.save(order2);
+        orderRepository.save(order3);
     }
 }

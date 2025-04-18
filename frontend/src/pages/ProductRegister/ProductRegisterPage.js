@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './ProductRegisterPage.css';
 import Select from 'react-select';
-import { CATEGORY_OPTIONS } from '../../contants/productCategoties';
+import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
 
 const ProductRegisterPage = () => {
   const [name, setName] = useState('');
@@ -45,7 +45,12 @@ const ProductRegisterPage = () => {
 
       if (response.ok) {
         alert('상품 등록에 성공했습니다!');
-        window.location.href = '/main'; // 이거 상품 페이지로 이동하도록 변경하자.
+        const location = response.headers.get('Location');
+        if (location) {
+          window.location.href = location;
+        } else{
+          window.location.href = '/main';
+        }
       } else {
         const errorData = await response.json();
         const errorMessage = errorData.detail || errorData.title || '상품 등록에 실패했습니다.';

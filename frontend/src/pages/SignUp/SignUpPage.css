@@ -18,9 +18,10 @@
 
 .signup-title {
   color: rgb(52, 59, 70);
-  font-size: 28px;
+  font-size: 32px;
   line-height: 42px;
   font-weight: 700;
+  padding: 10px 0px;
 }
 .email-input-form {
   display: flex;
@@ -198,4 +199,22 @@ label {
   color: #666;
   margin-top: -5px;
   margin-bottom: 5px;
+}
+
+.back-button{
+  width: fit-content;
+  padding: 5px;
+  height: 24px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgb(139, 147, 161);
+  font-weight: bold;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.back-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }

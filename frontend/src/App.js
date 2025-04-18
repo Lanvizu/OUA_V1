@@ -10,6 +10,8 @@ import PasswordUpdatePage from './pages/PasswordUpdate/PasswordUpdatePage';
 import Navbar from './components/Navbar/Navbar';
 import ProductRegisterPage from './pages/ProductRegister/ProductRegisterPage';
 import ProductPage from './pages/ProductPage/ProductPage';
+import MyProductsPage from './pages/MyProducts/MyProductsPage';
+import MyOrdersPage from './pages/MyOrders/MyOrdersPage';
 
 function App() {
   return (
@@ -32,12 +34,16 @@ function App() {
           {/* 비밀번호 찾기 페이지 */}
           <Route path="/password-update" element={<PasswordUpdatePage />} />
 
-          {/* 상품 상세 페이지 */}
-          <Route path="/product/:productId" element={<ProductPage />} />
 
-          {/* 상품 등록 페이지 */}
           <Route element={<ProtectedRoute />}>
+            {/* 내 주문 페이지 */}
+            <Route path="/my-orders" element={<MyOrdersPage />} />
+            {/* 상품 상세 페이지 */}
+            <Route path="/product/:productId" element={<ProductPage />} />
+            {/* 상품 등록 페이지 */}
             <Route path="/product-register" element={<ProductRegisterPage />} />
+            {/* 내 상품 페이지 */}
+            <Route path="/my-products" element={<MyProductsPage />} />
           </Route>
 
         </Routes>
