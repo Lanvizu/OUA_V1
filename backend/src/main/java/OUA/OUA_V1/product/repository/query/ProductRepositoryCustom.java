@@ -6,4 +6,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface ProductRepositoryCustom {
     Page<Product> findAllByFilters(String keyword, Boolean onSale, Integer categoryId, Pageable pageable);
+    Page<Product> findAllByMemberId(Long memberId, Pageable pageable);
 }

@@ -76,4 +76,27 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                 ? product.categoryId.eq(categoryId)
                 : null;
     }
+
+    @Override
+    public Page<Product> findAllByMemberId(Long memberId, Pageable pageable) {
+        QProduct product = QProduct.product;
+
+        List<Product> products = queryFactory
+                .selectFrom(product)
+                .where(product.member.id.eq(memberId))
+                .orderBy(product.createdDate.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long totalCount = Optional.ofNullable(
+                queryFactory
+                        .select(product.count())
+                        .from(product)
+                        .where(product.member.id.eq(memberId))
+                        .fetchOne()
+        ).orElse(0L);
+
+        return new PageImpl<>(products, pageable, totalCount);
+    }
 }
