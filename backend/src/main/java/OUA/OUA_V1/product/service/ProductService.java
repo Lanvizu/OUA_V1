@@ -32,8 +32,9 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(Long productId) {
-        productRepository.deleteById(productId);
+    public void deleteProduct(Product product) {
+        product.cancel();
+        product.markAsDeleted();
     }
 
     private void validateEndDate(LocalDateTime endDate) {
@@ -62,7 +63,7 @@ public class ProductService {
         return new ProductPreviewResponse(
                 product.getId(),
                 product.getName(),
-                product.getInitialPrice(),
+                product.getHighestOrderPrice(),
                 product.getBuyNowPrice(),
                 product.getEndDate(),
                 product.getImageUrls()

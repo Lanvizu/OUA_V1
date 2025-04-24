@@ -7,9 +7,9 @@ import OUA.OUA_V1.order.controller.request.OrderCreateRequest;
 import OUA.OUA_V1.order.controller.response.MyOrdersResponse;
 import OUA.OUA_V1.order.controller.response.OrdersResponse;
 import OUA.OUA_V1.order.controller.response.CountAndMyOrderResponse;
+import OUA.OUA_V1.order.domain.Order;
 import OUA.OUA_V1.order.facade.OrderFacade;
 import OUA.OUA_V1.order.service.OrderService;
-import OUA.OUA_V1.product.domain.Product;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -48,7 +48,7 @@ public class OrderController {
         return ResponseEntity.ok(new PagedModel<>(productOrders));
     }
 
-    // 삼품 페이지 로딩
+    // 상품 페이지 로딩
     @GetMapping("/product/{productId}/orders")
     public ResponseEntity<CountAndMyOrderResponse> getMyOrderAndOrdersCount(
             @PathVariable Long productId,
@@ -68,13 +68,15 @@ public class OrderController {
         return ResponseEntity.ok(new PagedModel<>(myOrders));
     }
 
-    @RequireAuthCheck(targetId = "orderId", targetDomain = Product.class)
+    @RequireAuthCheck(targetId = "orderId", targetDomain = Order.class)
     @PostMapping("/orders/{orderId}/cancel")
     public ResponseEntity<Void> cancelOrder(
             @PathVariable("orderId") Long orderId,
             LoginProfile loginProfile
     ) {
-        orderService.cancelOrder(orderId);
+        orderFacade.cancel(orderId);
         return ResponseEntity.noContent().build();
     }
+
+    // 상품 주인이 입찰 수락? 이걸 넣는 것이 적합할까...
 }

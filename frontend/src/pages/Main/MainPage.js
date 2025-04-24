@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './MainPage.css';
 import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
+import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
+import searchIcon from '../../assets/images/icon-search.png';
+import RightArrowIcon from '../../assets/images/icon-right.png';
+import LeftArrowIcon from '../../assets/images/icon-left.png';
 
 const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
 
@@ -17,10 +21,8 @@ const Main = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Helper function to get query parameters
   const getQueryParam = (key, defaultValue) => searchParams.get(key) || defaultValue;
 
-  // Fetch data based on query parameters
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
@@ -29,9 +31,9 @@ const Main = () => {
       const params = new URLSearchParams({
         page: getQueryParam('page', 0),
         size: getQueryParam('size', 10),
-        ...(searchKeyword && { keyword: searchKeyword }),
-        ...(onSaleFilter && { onSale: true }),
-        ...(selectedCategoryId && { categoryId: selectedCategoryId }),
+        ...(searchParams.get('keyword') && { keyword: searchParams.get('keyword') }),
+        ...(searchParams.get('onSale') && { onSale: true }),
+        ...(searchParams.get('categoryId') && { categoryId: searchParams.get('categoryId') }),
       });
 
       const response = await fetch(`/v1/products?${params}`);
@@ -55,39 +57,36 @@ const Main = () => {
     }
   };
 
-  // Update query parameters when filters change
-  const updateFilterParams = () => {
+  const updateFilterParams = (params = {}) => {
     const updatedParams = new URLSearchParams({
-      page: 0,
-      size: getQueryParam('size', 10),
+      page: params.page ?? getQueryParam('page', 0),
+      size: params.size ?? getQueryParam('size', 10),
       ...(searchKeyword && { keyword: searchKeyword }),
       ...(onSaleFilter && { onSale: true }),
       ...(selectedCategoryId && { categoryId: selectedCategoryId }),
     });
     setSearchParams(updatedParams);
-    fetchProducts(); // Trigger fetch after updating params
   };
 
-  // Fetch products whenever query parameters change
   useEffect(() => {
     fetchProducts();
   }, [searchParams]);
 
-  // 상품 클릭 시 상세 페이지로 이동
   const handleProductClick = (productId) => navigate(`/product/${productId}`);
 
-  // 상품 카드 컴포넌트
   const ProductCard = ({ product }) => (
     <div className="product-card" onClick={() => handleProductClick(product.productId)} style={{ cursor: 'pointer' }}>
-      {product.imageUrls.length > 0 ? (
-        <img src={product.imageUrls[0]} alt={product.name} className="product-card-image" />
-      ) : (
-        <div className="placeholder-image">이미지가 없습니다</div>
-      )}
+      <div className="image-container">
+        {product.imageUrls.length > 0 ? (
+          <img src={product.imageUrls[0]} alt={product.name} className="product-card-image" />
+        ) : (
+          <div className="placeholder-image">이미지가 없습니다</div>
+        )}
+      </div>
       <div className="product-card-info">
         <h2 className="product-name">{product.name}</h2>
         <div className="product-price-box">
-          <p className="product-price">{product.initialPrice.toLocaleString()}원</p>
+          <p className="product-price">{product.highestOrderPrice.toLocaleString()}원</p>
           <p className="product-price">{product.buyNowPrice.toLocaleString()}원</p>
         </div>
         <p className="product-end-date">{new Date(product.endDate).toLocaleString()}</p>
@@ -98,33 +97,33 @@ const Main = () => {
   // 페이지네이션 컴포넌트
   const Pagination = ({ pageInfo }) => (
     <div className="pagination">
-      <button onClick={() => updateFilterParams({ page: pageInfo.number - 1 })} disabled={pageInfo.number === 0}>
-        이전
+      <button
+        className="pagination-btn"
+        onClick={() => updateFilterParams({ page: pageInfo.number - 1 })}
+        disabled={pageInfo.totalPages === 0 || pageInfo.number === 0}
+        aria-label="이전 페이지"
+      >
+       <img src={LeftArrowIcon} alt="이전" className="pagination-arrow" />
       </button>
-      <span>
+      <span className="pagination-info">
         {pageInfo.number + 1} / {pageInfo.totalPages}
       </span>
       <button
+        className="pagination-btn"
         onClick={() => updateFilterParams({ page: pageInfo.number + 1 })}
-        disabled={pageInfo.number + 1 === pageInfo.totalPages}
+        disabled={pageInfo.totalPages === 0 || pageInfo.number + 1 === pageInfo.totalPages}
+        aria-label="다음 페이지"
       >
-        다음
+        <img src={RightArrowIcon} alt="다음" className="pagination-arrow" />
       </button>
     </div>
   );
 
   return (
     <div className="main-container">
+      <LoadingOverlay show={loading} message="상품 정보를 불러오는 중입니다..." />
       <header className="main-header">
-        <h1>경매 상품 검색</h1>
         <div className="search-filter-container">
-          {/* 검색 창 */}
-          <input
-            type="text"
-            placeholder="상품명 검색"
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-          />
 
           {/* 카테고리 선택 */}
           <select value={selectedCategoryId} onChange={(e) => setSelectedCategoryId(e.target.value)}>
@@ -136,6 +135,25 @@ const Main = () => {
             ))}
           </select>
 
+          {/* 검색창 + 검색 버튼 */}
+          <div className="search-input-wrapper">
+            <input
+              type="text"
+              placeholder="상품명 검색"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') updateFilterParams({ page: 0 }); }}
+            />
+            <button
+              className="search-icon-btn"
+              type="button"
+              onClick={() => updateFilterParams({ page: 0 })}
+              aria-label="검색"
+            >
+              <img src={searchIcon} alt="검색" />
+            </button>
+          </div>
+
           {/* 즉시구매 가능 필터 */}
           <label className="toggle-filter">
             <input
@@ -145,14 +163,10 @@ const Main = () => {
             />
             구매 가능만 보기
           </label>
-
-          {/* 검색 버튼 */}
-          <button onClick={updateFilterParams}>검색</button>
         </div>
       </header>
 
       <main className="main-content">
-        {loading && <p>로딩 중...</p>}
         {error && <p className="error">{error}</p>}
         {!loading && !error && products.length === 0 && <p>표시할 상품이 없습니다.</p>}
 
@@ -166,10 +180,6 @@ const Main = () => {
         {/* 페이지네이션 */}
         <Pagination pageInfo={pageInfo} />
       </main>
-
-      <footer className="main-footer">
-        <p>&copy; 2025 My Website. All rights reserved.</p>
-      </footer>
     </div>
   );
 };

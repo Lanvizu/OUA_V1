@@ -21,4 +21,15 @@ public class BaseEntity {
 
     @LastModifiedDate // 엔티티 수정 시 시각 자동 기록
     private LocalDateTime updatedDate;
+
+    @Column(name = "deleted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean deleted = false;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public void markAsDeleted() {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
 }

@@ -83,7 +83,10 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
 
         List<Product> products = queryFactory
                 .selectFrom(product)
-                .where(product.member.id.eq(memberId))
+                .where(
+                        product.member.id.eq(memberId),
+                        product.deleted.isFalse()
+                )
                 .orderBy(product.createdDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -93,7 +96,10 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                 queryFactory
                         .select(product.count())
                         .from(product)
-                        .where(product.member.id.eq(memberId))
+                        .where(
+                                product.member.id.eq(memberId),
+                                product.deleted.isFalse()
+                        )
                         .fetchOne()
         ).orElse(0L);
 

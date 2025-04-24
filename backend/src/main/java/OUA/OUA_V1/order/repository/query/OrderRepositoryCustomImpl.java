@@ -1,6 +1,7 @@
 package OUA.OUA_V1.order.repository.query;
 
 import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.domain.OrderStatus;
 import OUA.OUA_V1.order.domain.QOrder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,10 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
         Long count = queryFactory
                 .select(order.count())
                 .from(order)
-                .where(order.product.id.eq(productId))
+                .where(
+                        order.product.id.eq(productId),
+                        order.status.ne(OrderStatus.CANCELED)
+                )
                 .fetchOne();
         return count != null ? count: 0L;
     }
@@ -33,7 +37,10 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
 
         List<Order> orders = queryFactory
                 .selectFrom(order)
-                .where(order.member.id.eq(memberId))
+                .where(
+                        order.member.id.eq(memberId),
+                        order.status.ne(OrderStatus.CANCELED)
+                )
                 .orderBy(order.createdDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -56,7 +63,10 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
 
         List<Order> orders = queryFactory
                 .selectFrom(order)
-                .where(order.product.id.eq(productId))
+                .where(
+                        order.product.id.eq(productId),
+                        order.status.ne(OrderStatus.CANCELED)
+                )
                 .orderBy(order.createdDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -82,9 +92,44 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
                         .selectFrom(order)
                         .where(
                                 order.member.id.eq(memberId),
-                                order.product.id.eq(productId)
+                                order.product.id.eq(productId),
+                                order.status.eq(OrderStatus.ACTIVE)
                         )
                         .fetchOne()
         );
+    }
+
+    @Override
+    public Optional<Order> findTopActiveByProductId(Long productId) {
+        QOrder order = QOrder.order;
+
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(order)
+                        .where(
+                                order.product.id.eq(productId),
+                                order.status.ne(OrderStatus.CANCELED)
+                        )
+                        .orderBy(order.orderPrice.desc())
+                        .limit(1)
+                        .fetchOne()
+        );
+    }
+
+    @Override
+    public boolean existsActiveByMemberIdAndProductId(Long memberId, Long productId){
+        QOrder order = QOrder.order;
+
+        Integer fetchOne = queryFactory
+                .selectOne()
+                .from(order)
+                .where(
+                        order.member.id.eq(memberId),
+                        order.product.id.eq(productId),
+                        order.status.eq(OrderStatus.ACTIVE)
+                )
+                .fetchFirst();
+
+        return fetchOne != null;
     }
 }

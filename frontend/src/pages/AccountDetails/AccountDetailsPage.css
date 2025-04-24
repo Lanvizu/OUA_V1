@@ -1,0 +1,130 @@
+.account-details-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .account-detail-title{
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  
+  .details-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .account-detail-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  label {
+    font-weight: 600;
+    color: #555;
+  }
+
+  .nickname-group-inline {
+    display: flex;
+  }
+  
+  .update-button {
+    align-self: flex-end;
+    padding: 10px;
+    background-color: #8ad89b;
+    color: white; 
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+  
+  .update-button:hover {
+    background-color: #218838;
+  }
+  
+  .delete-account-button {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #de717c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+  .account-detail-password-link{
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    color: rgb(52, 59, 70);
+    line-height: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  
+  .delete-account-button:hover {
+    background-color: #c82333;
+  }
+  
+  .delete-confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  .modal-content h3 {
+    color: #dc3545;
+    margin-bottom: 1rem;
+  }
+  
+  .modal-content p {
+    margin-bottom: 2rem;
+    color: #666;
+  }
+  
+  .modal-buttons button {
+    margin: 0 1rem;
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .modal-buttons button:first-child {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .modal-buttons button:last-child {
+    background-color: #6c757d;
+    color: white;
+  }
+  

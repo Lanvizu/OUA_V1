@@ -5,7 +5,6 @@ import OUA.OUA_V1.order.controller.response.MyOrdersResponse;
 import OUA.OUA_V1.order.controller.response.OrdersResponse;
 import OUA.OUA_V1.order.domain.Order;
 import OUA.OUA_V1.order.exception.OrderNotFoundException;
-import OUA.OUA_V1.order.exception.badRequest.InvalidOrderPriceException;
 import OUA.OUA_V1.order.repository.OrderRepository;
 import OUA.OUA_V1.product.domain.Product;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,18 +24,11 @@ public class OrderService {
 
     @Transactional
     public Order createOrder(Member member, Product product, int orderPrice) {
-        validateOrderPrice(product, orderPrice);
         Order order = new Order(member, product, orderPrice);
         return orderRepository.save(order);
     }
 
-    private static void validateOrderPrice(Product product, int orderPrice) {
-        if (orderPrice < product.getInitialPrice() || orderPrice >= product.getBuyNowPrice()) {
-            throw new InvalidOrderPriceException();
-        }
-    }
-
-    public Order findByOrderId(Long orderId) {
+    public Order findById(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(OrderNotFoundException::new);
     }
@@ -46,7 +40,7 @@ public class OrderService {
     }
 
     public boolean existsByMemberIdAndProductId(Long memberId, Long productId) {
-        return orderRepository.existsByMemberIdAndProductId(memberId, productId);
+        return orderRepository.existsActiveByMemberIdAndProductId(memberId, productId);
     }
 
     public Page<OrdersResponse> getProductOrders(Long productId, Pageable pageable) {
@@ -83,9 +77,14 @@ public class OrderService {
     }
 
     @Transactional
-    public void cancelOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(OrderNotFoundException::new);
-        orderRepository.delete(order);
+    public Product cancelOrder(Long orderId) {
+        Order order = findById(orderId);
+        order.cancel();
+        order.markAsDeleted();
+        return order.getProduct();
+    }
+
+    public Optional<Order> findHighestOrder(Long productId) {
+        return orderRepository.findTopActiveByProductId(productId);
     }
 }

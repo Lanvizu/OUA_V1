@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './MyOrdersPage.css';
+import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 
 const MyOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -96,12 +97,12 @@ const MyOrdersPage = () => {
 
   return (
     <div className="my-orders-container">
+      <LoadingOverlay show={loading} message="주문 정보를 불러오는 중입니다..." />
       <header className="my-orders-header">
         <h1>내 주문 목록</h1>
       </header>
 
       <main className="my-orders-content">
-        {loading && <p>로딩 중...</p>}
         {error && <p className="error">{error}</p>}
         {!loading && !error && orders.length === 0 && <p>표시할 주문이 없습니다.</p>}
 
@@ -113,10 +114,6 @@ const MyOrdersPage = () => {
 
         <Pagination pageInfo={pageInfo} />
       </main>
-
-      <footer className="my-orders-footer">
-        <p>&copy; 2025 My Website. All rights reserved.</p>
-      </footer>
     </div>
   );
 };

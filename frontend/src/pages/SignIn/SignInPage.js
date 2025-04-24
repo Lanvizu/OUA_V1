@@ -40,6 +40,35 @@ const SignInPage = () => {
     }
   };
 
+  const handleGuestSignIn = async () => {
+    const guestEmail = "member@email.com";
+    const guestPassword = "qwer1234";
+  
+    try {
+      const response = await fetch('/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: guestEmail, password: guestPassword }),
+        credentials: 'include',
+      });
+  
+      if (response.ok) {
+        alert('게스트 로그인에 성공했습니다!');
+        setIsLoggedIn(true);
+        window.location.href = '/main';
+      } else {
+        const errorData = await response.json();
+        const errorMessage = errorData.detail || errorData.title || '게스트 로그인에 실패했습니다.';
+        alert(`오류: ${errorMessage} (상태 코드: ${errorData.status})`);
+        console.error('게스트 로그인 오류:', errorData);
+      }
+    } catch (error) {
+      console.error('게스트 로그인 요청 중 오류:', error);
+      alert('예기치 못한 오류가 발생했습니다.');
+    }
+  };
+  
+
   return (
     <div className="signin-page">
       <div className="signin-title-box">
@@ -94,6 +123,14 @@ const SignInPage = () => {
         <a href="/password-update" className="signin-reset-password-link">비밀번호 찾기</a>
         <div className="signin-footer-separator"></div>
         <a href="/signup" className="signin-register-link">계정 만들기</a>
+        <div className="signin-footer-separator"></div>
+        <span
+          type="button"
+          className="signin-guest-link"
+          onClick={handleGuestSignIn}
+        >
+          게스트 로그인
+        </span>
       </div>
     </div>
   );

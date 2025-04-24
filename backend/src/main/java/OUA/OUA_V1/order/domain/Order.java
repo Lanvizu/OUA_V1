@@ -35,13 +35,16 @@ public class Order extends BaseEntity implements SecureResource {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderStatus status;
+    private OrderStatus status = OrderStatus.ACTIVE;
 
     public Order(Member member, Product product, int orderPrice) {
         this.member = member;
         this.product = product;
         this.orderPrice = orderPrice;
-        this.status = OrderStatus.PENDING;
+    }
+
+    public void cancel() {
+        this.status = OrderStatus.CANCELED;
     }
 
     @Override

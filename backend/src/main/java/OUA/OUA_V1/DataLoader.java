@@ -45,28 +45,30 @@ public class DataLoader implements ApplicationRunner {
         memberRepository.save(member2);
 
         List<String> dummyImageUrls = List.of(
-                "%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-02-24%20202531.png",
-                "%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-03-12%20140443.png"
+                "%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-04-23%20101008.png",
+                "%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-04-23%20101212.png"
         );
-        Product product = new Product(member, "product", "테스트용 product입니다.", 100000,
-                999999, LocalDateTime.now().plusDays(7), ProductCategory.BOOKS.getCategoryId(), dummyImageUrls);
 
-        Product product2 = new Product(member, "product2", "테스트용 product2입니다.", 123456,
-                999999, LocalDateTime.now().plusDays(7), ProductCategory.BEAUTY_CARE.getCategoryId(), dummyImageUrls);
+        List<String> dummyImageUrls2 = List.of(
+                "%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-04-23%20101454.png",
+                "%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-04-23%20101513.png"
+        );
+        Product product = new Product(member2, "오데썽", "테스트용 상품입니다.", 100000,
+                150000, LocalDateTime.now().plusDays(7), ProductCategory.WOMEN_ACCESSORIES.getCategoryId(), dummyImageUrls);
 
-        Product product3 = new Product(member2, "product3", "테스트용 product3입니다.", 123456,
-                999999, LocalDateTime.now().plusDays(7), ProductCategory.BUYING_REQUESTS.getCategoryId(), dummyImageUrls);
+        Product product2 = new Product(member, "Mx Keys Mini", "테스트용 상품2입니다.", 80000,
+                140000, LocalDateTime.now().plusDays(10), ProductCategory.BEAUTY_CARE.getCategoryId(), dummyImageUrls2);
+
 
         productRepository.save(product);
         productRepository.save(product2);
-        productRepository.save(product3);
 
-        Order order = new Order(member, product3, 222222);
-        Order order2 = new Order(member2, product, 222222);
-        Order order3 = new Order(member2, product2, 333333);
+        Order order = new Order(member, product, 110000);
+        Order order2 = new Order(member2, product2, 90000);
 
         orderRepository.save(order);
         orderRepository.save(order2);
-        orderRepository.save(order3);
+        product.updateHighestOrder(order);
+        product2.updateHighestOrder(order2);
     }
 }

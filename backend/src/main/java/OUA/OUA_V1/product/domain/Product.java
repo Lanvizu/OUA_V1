@@ -47,8 +47,11 @@ public class Product extends BaseEntity implements SecureResource {
 
     private int buyNowPrice;
 
-    @Column(name = "start_date")
-    private LocalDateTime startDate;
+    private int highestOrderPrice;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "highest_order_id")
+    private Order highestOrder;
 
     @Column(name = "end_date")
     private LocalDateTime endDate;
@@ -76,9 +79,9 @@ public class Product extends BaseEntity implements SecureResource {
         this.name = name;
         this.description = description;
         this.initialPrice = initialPrice;
+        this.highestOrderPrice = initialPrice;
         this.buyNowPrice = buyNowPrice;
         this.onSale = true;
-        this.startDate = LocalDateTime.now();
         this.endDate = endDate;
         this.categoryId = categoryId;
         this.imageUrls = imageUrls;
@@ -94,6 +97,20 @@ public class Product extends BaseEntity implements SecureResource {
         if (!NAME_PATTERN.matcher(name).matches()) {
             throw new ProductIllegalNameException();
         }
+    }
+
+    public void updateHighestOrder(Order order) {
+        this.highestOrderPrice = order.getOrderPrice();
+        this.highestOrder = order;
+    }
+
+    public void resetHighestOrder() {
+        this.highestOrder = null;
+        this.highestOrderPrice = this.initialPrice;
+    }
+
+    public void cancel(){
+        this.onSale = false;
     }
 
     @Override
