@@ -118,22 +118,9 @@ const ProductRegisterPage = () => {
           <Select
             options={CATEGORY_OPTIONS}
             onChange={(selectedOption) => setCategoryId(selectedOption.value)}
-            placeholder="카테고리 검색..."
+            placeholder="카테고리 검색"
             noOptionsMessage={() => "검색 결과 없음"}
             isSearchable
-            components={{
-              DropdownIndicator: () => (
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 15 15"
-                  fill="none"
-                  style={{ marginRight: 8 }}
-                >
-                  <path d="M6 11L11 6M6 6l5 5" stroke="currentColor"/>
-                </svg>
-              )
-            }}
             styles={{
               control: (base) => ({
                 ...base,

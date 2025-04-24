@@ -27,6 +27,14 @@ const Navbar = () => {
     }
   };
 
+  const handleSettingsClick = () => {
+    if (isLoggedIn) {
+      navigate('/account/details');
+    } else {
+      navigate('/signin');
+    }
+  };
+
   return (
     <header className="navbar">
       <div className="navbar-logo">
@@ -36,6 +44,9 @@ const Navbar = () => {
         <Link to="/product-register">상품 등록</Link>
         <Link to="/my-products">내 상품</Link>
         <Link to="/my-orders">내 경매</Link>
+        <button onClick={handleSettingsClick} className="settings-button">
+          설정
+        </button>
         {isLoggedIn ? (
           <button onClick={handleLogout} className="logout-button">
             로그아웃

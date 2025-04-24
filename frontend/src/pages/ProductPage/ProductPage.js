@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import './ProductPage.css';
 import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
+import RightArrowIcon from '../../assets/images/icon-right.png';
+import LeftArrowIcon from '../../assets/images/icon-left.png';
 
 const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
 
@@ -12,9 +14,7 @@ const ProductPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showOptions, setShowOptions] = useState(false);
   const [orderPrice, setOrderPrice] = useState('');
-
   const [orderCount, setOrderCount] = useState(0);
   const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [myOrder, setMyOrder] = useState(null);
@@ -55,6 +55,7 @@ const ProductPage = () => {
       }
 
       alert('입찰이 완료되었습니다!');
+      window.location.reload();
       setOrderPrice('');
     } catch (error) {
       alert(error.message);
@@ -80,6 +81,9 @@ const ProductPage = () => {
   };
 
   const handleDeleteProduct = async () => {
+    if (!window.confirm("정말 상품을 삭제하시겠습니까?\n삭제된 상품은 복구할 수 없습니다.")) {
+      return;
+    }
     try {
       const response = await fetch(`/v1/product/${productId}/delete`, {
         method: 'POST',
@@ -216,7 +220,7 @@ const ProductPage = () => {
           onClick={handlePrev}
           disabled={product.imageUrls.length <= 1}
         >
-          &lt;
+          <img src={LeftArrowIcon} alt="이전" className="product-pagination-arrow" />
         </button>
 
         {product.imageUrls.map((url, index) => (
@@ -234,7 +238,7 @@ const ProductPage = () => {
           onClick={handleNext}
           disabled={product.imageUrls.length <= 1}
         >
-          &gt;
+          <img src={RightArrowIcon} alt="다음" className="product-pagination-arrow" />
         </button>
 
         <div className="carousel-dots">
@@ -261,10 +265,10 @@ const ProductPage = () => {
               className="modal-image"
             />
             <button className="modal-nav prev" onClick={handlePrev}>
-              &lt;
+              <img src={LeftArrowIcon} alt="이전" className="product-pagination-arrow" />
             </button>
             <button className="modal-nav next" onClick={handleNext}>
-              &gt;
+              <img src={RightArrowIcon} alt="다음" className="product-pagination-arrow" />
             </button>
           </div>
         </div>
@@ -274,33 +278,7 @@ const ProductPage = () => {
       <div className="product-details">
         <div className="product-header">
           <h1 className="product-title">{product.name}</h1>
-          <div className="options-toggle">
-            <button
-              className="toggle-button"
-              onClick={() => setShowOptions((prev) => !prev)}
-            >
-              ⋮ 
-            </button>
-
-            {showOptions && (
-              <div className="options-menu">
-                {product.isOwner && (
-                  <>
-                    <button
-                      className="delete-button"
-                      onClick={handleDeleteProduct}
-                      style={{ backgroundColor: 'red', color: 'white', marginTop: '10px' }}
-                    >
-                      상품 삭제하기
-                    </button>
-                  </>
-                )}
-                <button className="option-button">옵션1</button>
-                <button className="option-button">옵션2</button> 
-                {/* 추후 구현 예정 */}
-              </div>
-            )}
-          </div>
+          
         </div>
         <div className="info-category">
           <span className="info-value category">
@@ -310,8 +288,8 @@ const ProductPage = () => {
         </div>
         <div className="price-section">
           <div className="price-item">
-            <span className="price-label">경매 시작가</span>
-            <span className="price-value">{product.initialPrice.toLocaleString()}원</span>
+            <span className="price-label">최고 입찰가</span>
+            <span className="price-value">{product.highestOrderPrice.toLocaleString()}원</span>
           </div>
           <div className="price-item">
             <span className="price-label">즉시 구매가</span>
@@ -442,7 +420,8 @@ const ProductPage = () => {
                     onChange={(e) => setOrderPrice(e.target.value.replace(/\D/g, ''))}
                     placeholder="입찰 가격 입력"
                     className="order-input"
-                    min={product.initialPrice}
+                    min={product.highestOrderPrice + 1000}
+                    max={product.buyNowPrice}
                     disabled={!!myOrder}
                   />
                   <span className="input-suffix">원</span>
@@ -467,6 +446,17 @@ const ProductPage = () => {
             </div>
           )}
         </div>
+        
+        {product.isOwner && (
+          <div className="delete-section">
+            <button 
+              className="delete-product-button"
+              onClick={handleDeleteProduct}
+            >
+              상품 삭제
+            </button>
+          </div>
+        )}
       </div>
       <p className="product-description">{product.description}</p>
     </div>

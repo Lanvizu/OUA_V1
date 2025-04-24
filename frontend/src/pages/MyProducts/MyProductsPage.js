@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MyProductsPage.css';
+import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 
 const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
 
@@ -35,7 +36,7 @@ const MyProductsPage = () => {
 
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
-  }
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -48,48 +49,72 @@ const MyProductsPage = () => {
   };
 
   return (
-    <div className="main-container">
-      <header className="main-header">
-        <h1>환영합니다!</h1>
-        <p>여기에는 검색 창을 만들 예정이다.</p>
+    <div className="my-products-container">
+      <LoadingOverlay show={loading} message="상품 정보를 불러오는 중입니다..." />
+      <header className="my-products-header">
+        <h2>현재 내가 등록한 상품들</h2>
       </header>
 
-      <main className="main-content">
-        {loading && <p>로딩 중...</p>}
-        {error && <p className="error">{error}</p>}
-        {!loading && !error && products.length === 0 && <p>표시할 상품이 없습니다.</p>}
+      <main className="my-products-main">
+        {error && <p className="my-products-error">{error}</p>}
+        {!loading && !error && products.length === 0 && (
+          <p className="my-products-empty">표시할 상품이 없습니다.</p>
+        )}
 
         {/* 상품 목록 */}
-        <div className="product-list">
+        <div className="my-products-list">
           {products.map((product) => (
-            <div key={product.productId}
-            className="product-card"
-            onClick={() => handleProductClick(product.productId)}
+            <div
+              key={product.productId}
+              className="my-products-card"
+              onClick={() => handleProductClick(product.productId)}
+              style={{ cursor: 'pointer' }}
             >
-              {/* 첫 번째 이미지만 표시 */}
-              {product.imageUrls.length > 0 ? (
-                <img src={product.imageUrls[0]} alt={product.name} className="product-card-image"/>
-              ) : (
-                <div className="placeholder-image">이미지가 없습니다</div>
-              )}
-              <h2 className="product-name">{product.name}</h2>
-              <p className="product-price">시작가: {product.initialPrice.toLocaleString()}원</p>
-              <p className="product-price">즉시 구매가: {product.buyNowPrice.toLocaleString()}원</p>
-              <p className="product-end-date">종료일: {new Date(product.endDate).toLocaleString()}</p>
+              <div className="my-products-image-container">
+                {product.imageUrls.length > 0 ? (
+                  <img
+                    src={product.imageUrls[0]}
+                    alt={product.name}
+                    className="my-products-card-image"
+                  />
+                ) : (
+                  <div className="my-products-placeholder-image">이미지가 없습니다</div>
+                )}
+              </div>
+              <div className="my-products-card-info">
+                <h3 className="my-products-name">{product.name}</h3>
+                <div className="my-products-price-box">
+                  <span className="my-products-price">{product.highestOrderPrice.toLocaleString()}원</span>
+                  <span className="my-products-price">{product.buyNowPrice.toLocaleString()}원</span>
+                </div>
+                <div className="my-products-end-date">
+                  {new Date(product.endDate).toLocaleString()}
+                </div>
+              </div>
             </div>
           ))}
         </div>
 
         {/* 페이지네이션 */}
-        <div className="pagination">
-          <button onClick={() => handlePageChange(pageInfo.number - 1)} disabled={pageInfo.number === 0}>
-            이전
+        <div className="my-products-pagination">
+          <button
+            className="my-products-pagination-btn"
+            onClick={() => handlePageChange(pageInfo.number - 1)}
+            disabled={pageInfo.number === 0}
+            aria-label="이전 페이지"
+          >
+            &lt;
           </button>
-          <span>
+          <span className="my-products-pagination-info">
             {pageInfo.number + 1} / {pageInfo.totalPages}
           </span>
-          <button onClick={() => handlePageChange(pageInfo.number + 1)} disabled={pageInfo.number + 1 === pageInfo.totalPages}>
-            다음
+          <button
+            className="my-products-pagination-btn"
+            onClick={() => handlePageChange(pageInfo.number + 1)}
+            disabled={pageInfo.number + 1 === pageInfo.totalPages}
+            aria-label="다음 페이지"
+          >
+            &gt;
           </button>
         </div>
       </main>

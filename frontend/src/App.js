@@ -12,6 +12,8 @@ import ProductRegisterPage from './pages/ProductRegister/ProductRegisterPage';
 import ProductPage from './pages/ProductPage/ProductPage';
 import MyProductsPage from './pages/MyProducts/MyProductsPage';
 import MyOrdersPage from './pages/MyOrders/MyOrdersPage';
+import AccountDetailsPage from './pages/AccountDetails/AccountDetailsPage';
+import Footer from './components/Footer/Footer';
 
 function App() {
   return (
@@ -36,6 +38,8 @@ function App() {
 
 
           <Route element={<ProtectedRoute />}>
+            {/* 내 계정 페이지 */}
+            <Route path="/account/details" element={<AccountDetailsPage />} />
             {/* 내 주문 페이지 */}
             <Route path="/my-orders" element={<MyOrdersPage />} />
             {/* 상품 상세 페이지 */}
@@ -45,8 +49,8 @@ function App() {
             {/* 내 상품 페이지 */}
             <Route path="/my-products" element={<MyProductsPage />} />
           </Route>
-
         </Routes>
+        <Footer />
       </Router>
     </AuthProvider>
     
