@@ -1,5 +1,6 @@
 package OUA.OUA_V1.auth.facade;
 
+import OUA.OUA_V1.auth.exception.DeletedAccountException;
 import OUA.OUA_V1.auth.exception.LoginFailedException;
 import OUA.OUA_V1.auth.controller.request.LoginRequest;
 import OUA.OUA_V1.auth.service.AuthService;
@@ -19,6 +20,9 @@ public class AuthFacade {
 
     public String login(LoginRequest request) {
         Member member = memberService.findByEmail(request.email());
+        if(member.isDeleted()){
+            throw new DeletedAccountException();
+        }
         if (authService.isNotVerifiedPassword(request.password(), member.getPassword())) {
             throw new LoginFailedException();
         }
