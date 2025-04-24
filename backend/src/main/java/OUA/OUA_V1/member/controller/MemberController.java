@@ -1,13 +1,16 @@
 package OUA.OUA_V1.member.controller;
 
-import OUA.OUA_V1.member.controller.request.CodeVerificationRequest;
-import OUA.OUA_V1.member.controller.request.EmailRequest;
-import OUA.OUA_V1.member.controller.request.MemberCreateRequest;
-import OUA.OUA_V1.member.controller.request.NewPasswordRequest;
+import OUA.OUA_V1.auth.annotation.LoginMember;
+import OUA.OUA_V1.global.util.CookieManager;
+import OUA.OUA_V1.member.controller.request.*;
+import OUA.OUA_V1.member.controller.response.AccountDetailsResponse;
 import OUA.OUA_V1.member.controller.response.VerificationResponse;
 import OUA.OUA_V1.member.facade.MemberFacade;
+import OUA.OUA_V1.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,8 @@ import java.net.URI;
 public class MemberController {
 
     private final MemberFacade memberFacade;
+    private final MemberService memberService;
+    private final CookieManager cookieManager;
 
     @PostMapping("/email-verification")
     public ResponseEntity<Void> requestSignUpEmailVerification(@RequestBody @Valid EmailRequest request) {
@@ -50,5 +55,31 @@ public class MemberController {
                                                @CookieValue(name = "authToken", required = true) String token) {
         memberFacade.updatePassword(request, token);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/details")
+    public ResponseEntity<AccountDetailsResponse> getAccountDetails(
+            @LoginMember Long memberId) {
+        AccountDetailsResponse accountDetails = memberService.getAccountDetails(memberId);
+        return ResponseEntity.ok(accountDetails);
+    }
+
+    @PatchMapping("/details/nickname")
+    public ResponseEntity<Void> updateNickname(
+            @RequestBody @Valid NickNameUpdateRequest request,
+            @LoginMember Long memberId) {
+        memberService.updateNickName(memberId, request.nickName());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteMember(
+            @LoginMember Long memberId
+    ) {
+        memberService.deleteMember(memberId);
+        ResponseCookie cookie = cookieManager.clearTokenCookie();
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
     }
 }

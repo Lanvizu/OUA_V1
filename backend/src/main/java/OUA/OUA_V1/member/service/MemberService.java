@@ -1,6 +1,7 @@
 package OUA.OUA_V1.member.service;
 
 import OUA.OUA_V1.auth.security.PasswordValidator;
+import OUA.OUA_V1.member.controller.response.AccountDetailsResponse;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.exception.MemberNotFoundException;
 import OUA.OUA_V1.member.exception.badRequest.MemberIllegalPasswordException;
@@ -65,5 +66,26 @@ public class MemberService {
     public Member findByEmail(String email) {
         return memberRepository.findByEmail(email)
                 .orElseThrow(MemberNotFoundException::new);
+    }
+
+    public AccountDetailsResponse getAccountDetails(Long memberId){
+        Member member = findById(memberId);
+        return toAccountDetailsResponse(member);
+    }
+
+    private AccountDetailsResponse toAccountDetailsResponse(Member member) {
+        return new AccountDetailsResponse(member.getEmail(), member.getName(), member.getNickName(), member.getPhone());
+    }
+
+    @Transactional
+    public void updateNickName(Long memberId, String nickName) {
+        Member member = findById(memberId);
+        member.updateNickName(nickName);
+    }
+
+    @Transactional
+    public void deleteMember(Long memberId) {
+        Member member = findById(memberId);
+        member.markAsDeleted();
     }
 }
