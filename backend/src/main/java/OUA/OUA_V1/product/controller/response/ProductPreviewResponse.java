@@ -6,7 +6,7 @@ import java.util.List;
 public record ProductPreviewResponse(
         Long productId,
         String name,
-        int initialPrice,
+        int highestOrderPrice,
         int buyNowPrice,
         LocalDateTime endDate,
         List<String> imageUrls

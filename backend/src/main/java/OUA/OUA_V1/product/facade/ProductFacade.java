@@ -39,8 +39,8 @@ public class ProductFacade {
     public void deleteProduct(Long productId) {
         Product product = productService.findById(productId);
         List<String> imageUrls = product.getImageUrls();
-        productService.deleteProduct(productId);
         deleteImages(imageUrls);
+        productService.deleteProduct(product);
     }
 
     private void deleteImages(List<String> imageUrls) {
@@ -77,7 +77,7 @@ public class ProductFacade {
                 product.getId(),
                 product.getName(),
                 product.getDescription(),
-                product.getInitialPrice(),
+                product.getHighestOrderPrice(),
                 product.getBuyNowPrice(),
                 product.getEndDate(),
                 product.getCategoryId(),

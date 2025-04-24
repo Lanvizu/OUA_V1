@@ -7,7 +7,7 @@ public record ProductResponse(
         Long productId,
         String name,
         String description,
-        int initialPrice,
+        int highestOrderPrice,
         int buyNowPrice,
         LocalDateTime endDate,
         Integer categoryId,
