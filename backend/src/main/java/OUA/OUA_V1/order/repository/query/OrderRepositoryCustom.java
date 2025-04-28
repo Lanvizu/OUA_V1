@@ -13,5 +13,4 @@ public interface OrderRepositoryCustom {
     Optional<Order> findByMemberIdAndProductId(Long memberId, Long productId);
     long countByProductId(Long productId);
     Optional<Order> findTopActiveByProductId(Long productId);
-    boolean existsActiveByMemberIdAndProductId(Long memberId, Long productId);
 }
