@@ -40,9 +40,13 @@ public class DataLoader implements ApplicationRunner {
         Member member2 = new Member("member2@email.com", "member2", "member2Nickname",
                 "$2a$10$rG0JsflKdGcORjGFTURYb.npEgtvClK4.3P.EMr/o3SdekrVFxOvG",
                 "01012345678"); // password 원문: qwer1234
+        Member member3 = new Member("member3@email.com", "member3", "member3Nickname",
+                "$2a$10$rG0JsflKdGcORjGFTURYb.npEgtvClK4.3P.EMr/o3SdekrVFxOvG",
+                "01012345678"); // password 원문: qwer1234
 
         memberRepository.save(member);
         memberRepository.save(member2);
+        memberRepository.save(member3);
 
         List<String> dummyImageUrls = List.of(
                 "%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-04-23%20101008.png",
@@ -68,7 +72,7 @@ public class DataLoader implements ApplicationRunner {
 
         orderRepository.save(order);
         orderRepository.save(order2);
-        product.updateHighestOrder(order);
-        product2.updateHighestOrder(order2);
+        product.updateHighestOrder(order.getId(), order.getOrderPrice());
+        product2.updateHighestOrder(order2.getId(), order2.getOrderPrice());
     }
 }
