@@ -39,10 +39,6 @@ public class OrderService {
                 .orElse(null);
     }
 
-    public boolean existsByMemberIdAndProductId(Long memberId, Long productId) {
-        return orderRepository.existsActiveByMemberIdAndProductId(memberId, productId);
-    }
-
     public Page<OrdersResponse> getProductOrders(Long productId, Pageable pageable) {
         return orderRepository.findAllByProductId(productId, pageable)
                 .map(this::toOrdersResponse);
@@ -77,11 +73,9 @@ public class OrderService {
     }
 
     @Transactional
-    public Product cancelOrder(Long orderId) {
-        Order order = findById(orderId);
+    public void cancelOrder(Order order) {
         order.cancel();
         order.markAsDeleted();
-        return order.getProduct();
     }
 
     public Optional<Order> findHighestOrder(Long productId) {

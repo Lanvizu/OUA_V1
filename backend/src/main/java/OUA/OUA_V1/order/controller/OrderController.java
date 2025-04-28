@@ -3,7 +3,7 @@ package OUA.OUA_V1.order.controller;
 import OUA.OUA_V1.auth.annotation.LoginMember;
 import OUA.OUA_V1.auth.annotation.RequireAuthCheck;
 import OUA.OUA_V1.global.LoginProfile;
-import OUA.OUA_V1.order.controller.request.OrderCreateRequest;
+import OUA.OUA_V1.order.controller.request.OrderRequest;
 import OUA.OUA_V1.order.controller.response.MyOrdersResponse;
 import OUA.OUA_V1.order.controller.response.OrdersResponse;
 import OUA.OUA_V1.order.controller.response.CountAndMyOrderResponse;
@@ -25,14 +25,14 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderFacade orderFacade;
     private final OrderService orderService;
+    private final OrderFacade orderFacade;
 
     @PostMapping("/product/{productId}/orders")
     public ResponseEntity<Void> createOrder(
             @LoginMember Long memberId,
             @PathVariable Long productId,
-            @RequestBody @Valid OrderCreateRequest request
+            @RequestBody @Valid OrderRequest request
     ) {
         Long orderId = orderFacade.create(memberId, productId, request);
         return ResponseEntity.ok().build();
@@ -69,13 +69,26 @@ public class OrderController {
     }
 
     @RequireAuthCheck(targetId = "orderId", targetDomain = Order.class)
-    @PostMapping("/orders/{orderId}/cancel")
+    @PostMapping("/product/{productId}/orders/{orderId}/cancel")
     public ResponseEntity<Void> cancelOrder(
+            @PathVariable("productId") Long productId,
             @PathVariable("orderId") Long orderId,
             LoginProfile loginProfile
     ) {
-        orderFacade.cancel(orderId);
+        orderFacade.cancel(productId, orderId);
         return ResponseEntity.noContent().build();
+    }
+
+    @RequireAuthCheck(targetId = "orderId", targetDomain = Order.class)
+    @PostMapping("/product/{productId}/orders/{orderId}/update")
+    public ResponseEntity<Void> updateOrder(
+            @PathVariable("productId") Long productId,
+            @PathVariable("orderId") Long orderId,
+            @RequestBody @Valid OrderRequest request,
+            LoginProfile loginProfile
+    ) {
+        orderFacade.updatePrice(productId, orderId, request);
+        return ResponseEntity.ok().build();
     }
 
     // 상품 주인이 입찰 수락? 이걸 넣는 것이 적합할까...

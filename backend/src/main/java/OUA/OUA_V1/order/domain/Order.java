@@ -47,6 +47,10 @@ public class Order extends BaseEntity implements SecureResource {
         this.status = OrderStatus.CANCELED;
     }
 
+    public void updateOrderPrice(int orderPrice) {
+        this.orderPrice = orderPrice;
+    }
+
     @Override
     public boolean isAuthorizedBy(Member member) {
         return this.member.equals(member);

@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -55,5 +57,21 @@ public class RedisService {
     public void deleteVerificationCode(String email) {
         String key = EMAIL_VERIFICATION_PREFIX + email;
         redisTemplate.delete(key);
+    }
+
+    // 락 획득 시도
+    public String tryLock(String key, long expireMillis) {
+        String lockValue = UUID.randomUUID().toString();
+        Boolean success = redisTemplate.opsForValue()
+                .setIfAbsent(key, lockValue, expireMillis, TimeUnit.MILLISECONDS);
+        return Boolean.TRUE.equals(success) ? lockValue : null;
+    }
+
+    // 락 해제
+    public void releaseLock(String key, String lockValue) {
+        String currentValue = redisTemplate.opsForValue().get(key);
+        if (lockValue.equals(currentValue)) {
+            redisTemplate.delete(key);
+        }
     }
 }

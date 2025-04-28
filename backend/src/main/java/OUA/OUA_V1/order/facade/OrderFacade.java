@@ -1,11 +1,11 @@
 package OUA.OUA_V1.order.facade;
 
 import OUA.OUA_V1.advice.badRequest.OrderPriceException;
+import OUA.OUA_V1.global.RedisLockTemplate;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.service.MemberService;
-import OUA.OUA_V1.order.controller.request.OrderCreateRequest;
+import OUA.OUA_V1.order.controller.request.OrderRequest;
 import OUA.OUA_V1.order.domain.Order;
-import OUA.OUA_V1.order.exception.badRequest.OrderAlreadyExistsException;
 import OUA.OUA_V1.order.exception.badRequest.OrderOnOwnProductException;
 import OUA.OUA_V1.order.service.OrderService;
 import OUA.OUA_V1.product.domain.Product;
@@ -25,42 +25,65 @@ public class OrderFacade {
     private final OrderService orderService;
     private final MemberService memberService;
     private final ProductService productService;
+    private final RedisLockTemplate lockTemplate;
 
     @Transactional
-    public Long create(Long memberId, Long productId, OrderCreateRequest request) {
-        validateDuplicateOrder(memberId, productId);
-        Product product = productService.findById(productId); // 락 조회 추가 필요
+    public Long create(Long memberId, Long productId, OrderRequest request) {
+        return lockTemplate.executeWithLock(
+                productId,
+                () ->{
+                    Product product = productService.findById(productId);
+                    validateOwnProduct(memberId, product);
+                    validateProductOnSale(product);
+                    validateOrderPrice(product, request.orderPrice());
 
-        validateOwnProduct(memberId, product);
-        validateProductOnSale(product);
-        validateOrderPrice(product, request.orderPrice());
-
-        Member member = memberService.findById(memberId);
-        Order order = orderService.createOrder(member, product, request.orderPrice());
-        product.updateHighestOrder(order);
-        return order.getId();
+                    Member member = memberService.findById(memberId);
+                    Order order = orderService.createOrder(member, product, request.orderPrice());
+                    product.updateHighestOrder(order.getId(), order.getOrderPrice());
+                    return order.getId();
+                }
+        );
     }
 
     @Transactional
-    public void cancel(Long orderId) {
-        Product product = orderService.cancelOrder(orderId);
-        Optional<Order> highestOrder = orderService.findHighestOrder(product.getId());
-        if(highestOrder.isPresent()) {
-            product.updateHighestOrder(highestOrder.get());
-        }else{
-            product.resetHighestOrder();
-        }
+    public void cancel(Long productId, Long orderId) {
+        // 추후 최고 입찰가인 경우에만 분산락 적용되도록 변경 필요
+        lockTemplate.executeWithLock(
+            productId,
+            ()->{
+                Product product = productService.findById(productId);
+                Order order = orderService.findById(orderId);
+                orderService.cancelOrder(order);
+                if (product.isHighestOrder(orderId)) {
+                    Optional<Order> highestOrder = orderService.findHighestOrder(product.getId());
+                    highestOrder.ifPresentOrElse(
+                            h -> product.updateHighestOrder(h.getId(), h.getOrderPrice()),
+                            product::resetHighestOrder
+                    );
+                }
+            }
+        );
     }
 
-    private void validateDuplicateOrder(Long memberId, Long productId) {
-        if (orderService.existsByMemberIdAndProductId(memberId, productId)) {
-            throw new OrderAlreadyExistsException();
-        }
+    @Transactional
+    public void updatePrice(Long productId, Long orderId, OrderRequest request) {
+        lockTemplate.executeWithLock(
+                productId,
+                () -> {
+                    Product product = productService.findById(productId);
+                    Order order = orderService.findById(orderId);
+
+                    validateProductOnSale(product);
+                    validateOrderPrice(product, request.orderPrice());
+
+                    order.updateOrderPrice(request.orderPrice());
+                    product.updateHighestOrder(order.getId(), order.getOrderPrice());
+                }
+        );
     }
 
     private void validateOrderPrice(Product product, int orderPrice) {
         int currentHighest = product.getHighestOrderPrice();
-
         if (orderPrice <= currentHighest) {
             throw new OrderPriceException(currentHighest, product.getBuyNowPrice(), orderPrice);
         }

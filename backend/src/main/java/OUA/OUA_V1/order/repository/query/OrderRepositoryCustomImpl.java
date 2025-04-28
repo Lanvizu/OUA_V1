@@ -115,21 +115,4 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
                         .fetchOne()
         );
     }
-
-    @Override
-    public boolean existsActiveByMemberIdAndProductId(Long memberId, Long productId){
-        QOrder order = QOrder.order;
-
-        Integer fetchOne = queryFactory
-                .selectOne()
-                .from(order)
-                .where(
-                        order.member.id.eq(memberId),
-                        order.product.id.eq(productId),
-                        order.status.eq(OrderStatus.ACTIVE)
-                )
-                .fetchFirst();
-
-        return fetchOne != null;
-    }
 }

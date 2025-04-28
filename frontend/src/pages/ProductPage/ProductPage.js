@@ -29,22 +29,30 @@ const ProductPage = () => {
   const [ordersModalPage, setOrdersModalPage] = useState(0);
 
   const handleOrder = async () => {
-    if (!orderPrice || isNaN(orderPrice) || parseInt(orderPrice) <= 0) {
+    const priceToSubmit = parseInt(orderPrice || myOrder?.orderPrice);
+
+    if (!priceToSubmit || priceToSubmit <= 0) {
       alert('유효한 입찰가를 입력해주세요.');
       return;
     }
 
-    const confirmed = window.confirm(`${parseInt(orderPrice).toLocaleString()}원으로 입찰하시겠습니까?`);
+    const actionType = myOrder ? "변경" : "입찰";
+    const confirmed = window.confirm(
+      `${priceToSubmit.toLocaleString()}원으로 ${actionType}하시겠습니까?`
+    );
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/v1/product/${productId}/orders`, {
+      const url = myOrder 
+        ? `/v1/product/${productId}/orders/${myOrder.orderId}/update`
+        : `/v1/product/${productId}/orders`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          orderPrice: parseInt(orderPrice)
+          orderPrice: priceToSubmit
         }),
         credentials: 'include'
       });
@@ -54,7 +62,7 @@ const ProductPage = () => {
         throw new Error(errorData.detail || errorData.title || '입찰에 실패했습니다.');
       }
 
-      alert('입찰이 완료되었습니다!');
+      alert(`${actionType}이 완료되었습니다!`);
       window.location.reload();
       setOrderPrice('');
     } catch (error) {
@@ -153,6 +161,13 @@ const ProductPage = () => {
     fetchOrders();
   }, [productId]);
 
+  useEffect(() => {
+    if (myOrder) {
+      setOrderPrice(myOrder.orderPrice.toString());
+    }
+  }, [myOrder]);
+
+
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
 
@@ -163,7 +178,7 @@ const ProductPage = () => {
     setCancelLoading(true);
     setCancelError('');
     try {
-      const response = await fetch(`/v1/orders/${myOrder.orderId}/cancel`, {
+      const response = await fetch(`/v1/product/${productId}/orders/${myOrder.orderId}/cancel`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -317,13 +332,15 @@ const ProductPage = () => {
               {/* 주문 수 및 상세 보기 버튼 */}
               <div className="order-summary">
                 <span>총 입찰 건수: {orderCount}</span>
-                <button 
-                  onClick={handleShowOrdersModal}
-                  className="view-details-btn"
-                  disabled={orderCount === 0}
-                >
-                  {orderCount > 0 ? '[입찰 기록]' : '입찰 없음'}
-                </button>
+                {product.isOwner && (
+                  <button 
+                    onClick={handleShowOrdersModal}
+                    className="view-details-btn"
+                    disabled={orderCount === 0}
+                  >
+                    {orderCount > 0 ? '[입찰 기록]' : '입찰 없음'}
+                  </button>
+                )}
               </div>
 
               {/* 주문 모달 창 */}
@@ -404,6 +421,9 @@ const ProductPage = () => {
                   {cancelError && (
                     <div style={{ color: 'red', marginTop: 4 }}>{cancelError}</div>
                   )}
+                  {/* <div className="modify-notice">
+                    * 현재 입찰가를 수정할 수 있습니다 (최소 {product.highestOrderPrice + 1000}원 이상)
+                  </div> */}
                 </div>
               )}
             </>
@@ -413,31 +433,59 @@ const ProductPage = () => {
           {!product.isOwner && (
             <div className="order-section-vertical">
               <div className="order-row">
-                <div className="order-input-group">
-                  <input
-                    type="number"
-                    value={orderPrice}
-                    onChange={(e) => setOrderPrice(e.target.value.replace(/\D/g, ''))}
-                    placeholder="입찰 가격 입력"
-                    className="order-input"
-                    min={product.highestOrderPrice + 1000}
-                    max={product.buyNowPrice}
-                    disabled={!!myOrder}
-                  />
-                  <span className="input-suffix">원</span>
-                </div>
+              <div className="order-input-group">
+                <button
+                  type="button"
+                  className="order-arrow left"
+                  onClick={() => {
+                    const min = product.highestOrderPrice + 1000;
+                    setOrderPrice((prev) => {
+                      const next = Math.max(min, (parseInt(prev || min, 10) - 1000));
+                      return next.toString();
+                    });
+                  }}
+                  aria-label="1000원 감소"
+                >
+                  <img src={LeftArrowIcon} alt="1000원 감소" />
+                </button>
+                <input
+                  type="number"
+                  value={orderPrice}
+                  onChange={(e) => setOrderPrice(e.target.value.replace(/\D/g, ''))}
+                  placeholder="입찰가"
+                  className="order-input"
+                  min={product.highestOrderPrice + 1000}
+                  max={product.buyNowPrice}
+                />
+                <span className="input-suffix">원</span>
+                <button
+                  type="button"
+                  className="order-arrow right"
+                  onClick={() => {
+                    const min = product.highestOrderPrice + 1000;
+                    const max = product.buyNowPrice;
+                    setOrderPrice((prev) => {
+                      const next = Math.min(max, (parseInt(prev || min, 10) + 1000));
+                      return next.toString();
+                    });
+                  }}
+                  aria-label="1000원 증가"
+                >
+                  <img src={RightArrowIcon} alt="1000원 증가" />
+                </button>
+              </div>
                 <div className="buy-now-price">
                   <span className="buy-now-value">{product.buyNowPrice.toLocaleString()}</span>
                   <span className="input-suffix">원</span>
                 </div>
               </div>
               <div className="order-row">
-                <button
+                <button 
                   className="order-button"
                   onClick={handleOrder}
-                  disabled={!orderPrice}
+                  disabled={!orderPrice && !myOrder}
                 >
-                  입찰하기
+                  {myOrder ? "입찰가 변경" : "입찰하기"}
                 </button>
                 <button className="buy-now-button">
                   즉시 구매
