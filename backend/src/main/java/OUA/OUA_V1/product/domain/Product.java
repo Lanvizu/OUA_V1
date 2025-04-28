@@ -49,9 +49,8 @@ public class Product extends BaseEntity implements SecureResource {
 
     private int highestOrderPrice;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "highest_order_id")
-    private Order highestOrder;
+    @Column(name = "highest_order_id")
+    private Long highestOrderId;
 
     @Column(name = "end_date")
     private LocalDateTime endDate;
@@ -99,14 +98,18 @@ public class Product extends BaseEntity implements SecureResource {
         }
     }
 
-    public void updateHighestOrder(Order order) {
-        this.highestOrderPrice = order.getOrderPrice();
-        this.highestOrder = order;
+    public void updateHighestOrder(Long orderId, int orderPrice) {
+        this.highestOrderId = orderId;
+        this.highestOrderPrice = orderPrice;
     }
 
     public void resetHighestOrder() {
-        this.highestOrder = null;
+        this.highestOrderId = null;
         this.highestOrderPrice = this.initialPrice;
+    }
+
+    public boolean isHighestOrder(Long orderId){
+        return this.highestOrderId != null && this.highestOrderId.equals(orderId);
     }
 
     public void cancel(){
