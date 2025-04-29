@@ -74,6 +74,7 @@
     display: flex;
     justify-content: space-between;
     margin: 10px 0px;
+    align-items: center;
   }
 
   .info-category {
@@ -257,7 +258,6 @@
       color:red
   }
 
-  /* ProductPage.css 추가 스타일 */
 .order-section {
   display: flex;
   gap: 12px;
@@ -404,7 +404,6 @@
   outline: none;
   transition: border-color 0.2s;
   text-align: center;
-  /* padding: 0px 35px; */
 }
 
 .order-input:focus {
@@ -450,13 +449,20 @@
   border: 1.5px solid #ff2e4d;
 }
 
+.buy-now-button:disabled {
+  background: #bfc9d1;
+  color: #fff;
+  cursor: not-allowed;
+  border: 1.5px solid #bfc9d1;
+}
+
 .order-button {
   background: #fff;
   color: #007aff;
   border: 1.5px solid #007aff;
 }
 
-.buy-now-button:hover{
+.buy-now-button:hover:not(:disabled) {
   background: #ff2e4d;
   color: #fff;
 }
