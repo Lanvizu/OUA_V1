@@ -46,6 +46,24 @@ public class OrderFacade {
     }
 
     @Transactional
+    public Long buyNow(Long memberId, Long productId){
+        return lockTemplate.executeWithLock(
+                productId,
+                () ->{
+                    Product product = productService.findById(productId);
+                    validateOwnProduct(memberId, product);
+                    validateProductOnSale(product);
+
+                    Member member = memberService.findById(memberId);
+                    Order order = orderService.buyNowOrder(member, product);
+                    product.updateHighestOrder(order.getId(), order.getOrderPrice());
+                    product.endAuction();
+                    return order.getId();
+                }
+        );
+    }
+
+    @Transactional
     public void cancel(Long productId, Long orderId) {
         // 추후 최고 입찰가인 경우에만 분산락 적용되도록 변경 필요
         lockTemplate.executeWithLock(
