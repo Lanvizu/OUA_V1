@@ -98,6 +98,10 @@ public class Product extends BaseEntity implements SecureResource {
         }
     }
 
+    public void endAuction(){
+        this.onSale = false;
+    }
+
     public void updateHighestOrder(Long orderId, int orderPrice) {
         this.highestOrderId = orderId;
         this.highestOrderPrice = orderPrice;

@@ -82,6 +82,7 @@ public class ProductFacade {
                 product.getEndDate(),
                 product.getCategoryId(),
                 product.getImageUrls(),
+                product.getOnSale(),
                 isOwner
         );
     }

@@ -28,7 +28,55 @@ const ProductPage = () => {
   const [ordersModalData, setOrdersModalData] = useState({ content: [], page: {} });
   const [ordersModalPage, setOrdersModalPage] = useState(0);
 
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  const calculateTimeLeft = () => {
+    if (!product?.endDate) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+
+    const difference = new Date(product.endDate) - new Date();
+    if (difference <= 0) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+
+    return {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((difference / 1000 / 60) % 60),
+      seconds: Math.floor((difference / 1000) % 60)
+    };
+  };
+
+  const formatTime = (time) => {
+    const parts = [];
+    
+    if (time.days > 0) {
+      parts.push(`${time.days}일`);
+    }
+  
+    parts.push(
+      `${String(time.hours).padStart(2, '0')}시`,
+      `${String(time.minutes).padStart(2, '0')}분`,
+      `${String(time.seconds).padStart(2, '0')}초`
+    );
+  
+    return parts.join(' ');
+  };
+
+  useEffect(() => {
+    if (!product?.onSale) return;
+  
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+  
+    return () => clearInterval(timer);
+  }, [product?.endDate, product?.onSale]);
+
   const handleOrder = async () => {
+    if (!product.onSale) {
+      alert("경매가 종료되어 입찰이 불가능합니다");
+      return;
+    }
     const priceToSubmit = parseInt(orderPrice || myOrder?.orderPrice);
 
     if (!priceToSubmit || priceToSubmit <= 0) {
@@ -186,10 +234,37 @@ const ProductPage = () => {
       if (!response.ok) throw new Error('입찰 취소에 실패했습니다.');
       await fetchOrders();
       window.alert('입찰이 취소되었습니다.');
+      window.location.reload();
     } catch (err) {
       setCancelError(err.message);
     } finally {
       setCancelLoading(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!product.onSale) {
+      alert("경매가 종료되어 즉시 구매가 불가능합니다");
+      return;
+    }
+    if (!window.confirm(`${product.buyNowPrice.toLocaleString()}원에 즉시 구매하시겠습니까?`)) return;
+  
+    try {
+      const response = await fetch(`/v1/product/${productId}/buy-now`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || errorData.title || '즉시 구매에 실패했습니다.');
+      }
+  
+      alert('즉시 구매가 완료되었습니다!');
+      window.location.reload();
+    } catch (error) {
+      alert(error.message);
+      console.error('즉시 구매 오류:', error);
     }
   };
 
@@ -303,7 +378,10 @@ const ProductPage = () => {
         </div>
         <div className="price-section">
           <div className="price-item">
-            <span className="price-label">최고 입찰가</span>
+            <span className="price-label">{product.onSale ? 
+              "최고 입찰가" : 
+              "최종 낙찰가"
+            }</span>
             <span className="price-value">{product.highestOrderPrice.toLocaleString()}원</span>
           </div>
           <div className="price-item">
@@ -316,8 +394,19 @@ const ProductPage = () => {
 
         <div className="info-box">
           <div className="info-item">
-            <span className="info-label">종료 시간</span>
-            <span className="info-value">{new Date(product.endDate).toLocaleString()}</span>
+            <span className="info-label">남은 시간</span>
+            {product.onSale ? (
+              <div className="time-display">
+                <p className="info-value countdown">
+                  {formatTime(timeLeft)}
+                </p>
+                <p className="info-value end-time">
+                  ({new Date(product.endDate).toLocaleString()})
+                </p>
+              </div>
+            ) : (
+              <span className="info-value">경매 종료</span>
+            )}
           </div>
         </div>
 
@@ -412,25 +501,21 @@ const ProductPage = () => {
                 <div className="my-order-box">
                   <span>내 입찰가: {myOrder.orderPrice.toLocaleString()}원</span>
                   <button
-                    onClick={handleCancelOrder}
-                    disabled={cancelLoading}
+                    onClick={!product.onSale ? undefined : handleCancelOrder}
+                    disabled={!product.onSale || cancelLoading}
                     className="cancel-button"
                   >
-                    {cancelLoading ? '취소 중...' : '취소'}
+                    {!product.onSale ? "취소 불가" : (cancelLoading ? '취소 중...' : '취소')}
                   </button>
                   {cancelError && (
                     <div style={{ color: 'red', marginTop: 4 }}>{cancelError}</div>
                   )}
-                  {/* <div className="modify-notice">
-                    * 현재 입찰가를 수정할 수 있습니다 (최소 {product.highestOrderPrice + 1000}원 이상)
-                  </div> */}
                 </div>
               )}
             </>
           )}
         </div>
         <div className="button-group">
-          {!product.isOwner && (
             <div className="order-section-vertical">
               <div className="order-row">
               <div className="order-input-group">
@@ -456,6 +541,7 @@ const ProductPage = () => {
                   className="order-input"
                   min={product.highestOrderPrice + 1000}
                   max={product.buyNowPrice}
+                  disabled={!product.onSale || product.isOwner}
                 />
                 <span className="input-suffix">원</span>
                 <button
@@ -482,17 +568,22 @@ const ProductPage = () => {
               <div className="order-row">
                 <button 
                   className="order-button"
-                  onClick={handleOrder}
-                  disabled={!orderPrice && !myOrder}
+                  onClick={!product.onSale ? undefined : handleOrder}
+                  disabled={!product.onSale || (!orderPrice && !myOrder)}
+                  title={!product.onSale ? "경매가 종료되어 입찰이 불가능합니다" : ""}
                 >
-                  {myOrder ? "입찰가 변경" : "입찰하기"}
+                  {!product.onSale ? "경매 종료" : (myOrder ? "입찰가 변경" : "입찰하기")}
                 </button>
-                <button className="buy-now-button">
+                <button 
+                  className="buy-now-button"
+                  onClick={!product.onSale ? undefined : handleBuyNow}
+                  disabled={!product.onSale || product.isOwner}
+                  title={!product.onSale ? "경매가 종료되어 즉시 구매가 불가능합니다" : ""}
+                >
                   즉시 구매
                 </button>
               </div>
             </div>
-          )}
         </div>
         
         {product.isOwner && (

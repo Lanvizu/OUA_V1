@@ -25,7 +25,6 @@ const SignInPage = () => {
       });
 
       if (response.ok) {
-        alert('로그인에 성공했습니다!');
         setIsLoggedIn(true);
         window.location.href = '/main';
       } else {
@@ -53,7 +52,6 @@ const SignInPage = () => {
       });
   
       if (response.ok) {
-        alert('게스트 로그인에 성공했습니다!');
         setIsLoggedIn(true);
         window.location.href = '/main';
       } else {

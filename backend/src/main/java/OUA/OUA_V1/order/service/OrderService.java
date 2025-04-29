@@ -28,6 +28,13 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Transactional
+    public Order buyNowOrder(Member member, Product product) {
+        Order order = new Order(member, product, product.getBuyNowPrice());
+        order.confirmOrder();
+        return orderRepository.save(order);
+    }
+
     public Order findById(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(OrderNotFoundException::new);
