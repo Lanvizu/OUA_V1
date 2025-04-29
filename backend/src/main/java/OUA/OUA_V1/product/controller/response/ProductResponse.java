@@ -12,6 +12,7 @@ public record ProductResponse(
         LocalDateTime endDate,
         Integer categoryId,
         List<String> imageUrls,
+        boolean onSale,
         boolean isOwner
 ) {
 }
