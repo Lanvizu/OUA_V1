@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -37,10 +39,18 @@ public class Order extends BaseEntity implements SecureResource {
     @Column(nullable = false)
     private OrderStatus status = OrderStatus.ACTIVE;
 
+    @Column(name = "confirmed_at")
+    private LocalDateTime confirmedAt;
+
     public Order(Member member, Product product, int orderPrice) {
         this.member = member;
         this.product = product;
         this.orderPrice = orderPrice;
+    }
+
+    public void confirmOrder(){
+        this.status = OrderStatus.CONFIRMED;
+        this.confirmedAt = LocalDateTime.now();
     }
 
     public void cancel() {
