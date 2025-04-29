@@ -38,6 +38,15 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/product/{productId}/buy-now")
+    public ResponseEntity<Void> buyNow(
+            @LoginMember Long memberId,
+            @PathVariable Long productId
+    ) {
+        Long orderId = orderFacade.buyNow(memberId, productId);
+        return ResponseEntity.ok().build();
+    }
+
     // 상품에 대한 전체 주문 조회
     @GetMapping("/product/{productId}/total-orders")
     public ResponseEntity<PagedModel<OrdersResponse>> getProductOrders(
