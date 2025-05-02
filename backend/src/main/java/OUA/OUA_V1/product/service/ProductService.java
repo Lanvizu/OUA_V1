@@ -66,7 +66,8 @@ public class ProductService {
                 product.getHighestOrderPrice(),
                 product.getBuyNowPrice(),
                 product.getEndDate(),
-                product.getImageUrls()
+                product.getImageUrls(),
+                product.getStatus()
         );
     }
 }

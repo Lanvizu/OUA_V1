@@ -1,6 +1,7 @@
 package OUA.OUA_V1.product.repository.query;
 
 import OUA.OUA_V1.product.domain.Product;
+import OUA.OUA_V1.product.domain.ProductStatus;
 import OUA.OUA_V1.product.domain.QProduct;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -53,7 +54,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
         BooleanExpression predicate = Expressions.asBoolean(true).isTrue();
 
         predicate = predicate.and(containsKeyword(product, keyword));
-        predicate = predicate.and(isOnSaleEqual(product, onSale));
+        predicate = predicate.and(isStatusEqual(product, onSale));
         predicate = predicate.and(isCategoryEqual(product, categoryId));
 
         return predicate;
@@ -65,9 +66,9 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                 : null;
     }
 
-    private BooleanExpression isOnSaleEqual(QProduct product, Boolean onSale) {
+    private BooleanExpression isStatusEqual(QProduct product, Boolean onSale) {
         return (onSale != null)
-                ? product.onSale.eq(onSale)
+                ? product.status.eq(ProductStatus.ACTIVE)
                 : null;
     }
 
