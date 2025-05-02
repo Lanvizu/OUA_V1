@@ -192,12 +192,12 @@ const PasswordUpdatePage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="text-input"
+              className="PU-text-input"
               placeholder="새 비밀번호"
               />
               <button
               type="button"
-              className="password-toggle"
+              className="PU-password-toggle"
               onClick={() => setShowPassword(!showPassword)}
               >
               <img
@@ -216,12 +216,12 @@ const PasswordUpdatePage = () => {
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
               required
-              className="text-input"
+              className="PU-text-input"
               placeholder="새 비밀번호 확인"
               />
               <button
               type="button"
-              className="password-toggle"
+              className="PU-password-toggle"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
               <img

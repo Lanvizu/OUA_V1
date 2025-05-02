@@ -9,12 +9,14 @@ import OUA.OUA_V1.order.domain.Order;
 import OUA.OUA_V1.order.exception.badRequest.OrderOnOwnProductException;
 import OUA.OUA_V1.order.service.OrderService;
 import OUA.OUA_V1.product.domain.Product;
+import OUA.OUA_V1.product.domain.ProductStatus;
 import OUA.OUA_V1.product.exception.badRequest.ProductClosedException;
 import OUA.OUA_V1.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -34,7 +36,7 @@ public class OrderFacade {
                 () ->{
                     Product product = productService.findById(productId);
                     validateOwnProduct(memberId, product);
-                    validateProductOnSale(product);
+                    validateProductIsActive(product); // onSale과 현재 입찰 시간을 판단하는 기능 추가.
                     validateOrderPrice(product, request.orderPrice());
 
                     Member member = memberService.findById(memberId);
@@ -52,12 +54,12 @@ public class OrderFacade {
                 () ->{
                     Product product = productService.findById(productId);
                     validateOwnProduct(memberId, product);
-                    validateProductOnSale(product);
+                    validateProductIsActive(product);
 
                     Member member = memberService.findById(memberId);
                     Order order = orderService.buyNowOrder(member, product);
                     product.updateHighestOrder(order.getId(), order.getOrderPrice());
-                    product.endAuction();
+                    product.soldAuction();
                     return order.getId();
                 }
         );
@@ -91,7 +93,7 @@ public class OrderFacade {
                     Product product = productService.findById(productId);
                     Order order = orderService.findById(orderId);
 
-                    validateProductOnSale(product);
+                    validateProductIsActive(product);
                     validateOrderPrice(product, request.orderPrice());
 
                     order.updateOrderPrice(request.orderPrice());
@@ -116,8 +118,8 @@ public class OrderFacade {
         }
     }
 
-    private void validateProductOnSale(Product product) {
-        if (!product.getOnSale()) {
+    private void validateProductIsActive(Product product) {
+        if (!product.getStatus().equals(ProductStatus.ACTIVE) || product.getEndDate().isBefore(LocalDateTime.now())) {
             throw new ProductClosedException();
         }
     }

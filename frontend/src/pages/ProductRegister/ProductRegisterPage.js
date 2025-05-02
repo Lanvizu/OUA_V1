@@ -93,7 +93,7 @@ const ProductRegisterPage = () => {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="text-input"
+            className="PR-text-input"
             placeholder="상품 이름 입력"
           />
         </div>
@@ -106,7 +106,7 @@ const ProductRegisterPage = () => {
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="text-input"
+            className="PR-text-input"
             placeholder="상품 설명을 입력하세요."
           />
         </div>
@@ -141,7 +141,7 @@ const ProductRegisterPage = () => {
             id="initialPrice"
             value={initialPrice}
             onChange={(e) => setInitialPrice(e.target.value)}
-            className="text-input"
+            className="PR-text-input"
             placeholder="경매 시작 가격을 입력"
           />
         </div>
@@ -155,7 +155,7 @@ const ProductRegisterPage = () => {
             id="buyNowPrice"
             value={buyNowPrice}
             onChange={(e) => setBuyNowPrice(e.target.value)}
-            className="text-input"
+            className="PR-text-input"
             placeholder="즉시 구매가를 입력"
           />
         </div>
@@ -169,7 +169,7 @@ const ProductRegisterPage = () => {
             id="endDate"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="text-input"
+            className="PR-text-input"
           />
         </div>
 

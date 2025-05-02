@@ -52,7 +52,7 @@ const MyProductsPage = () => {
     <div className="my-products-container">
       <LoadingOverlay show={loading} message="상품 정보를 불러오는 중입니다..." />
       <header className="my-products-header">
-        <h2>현재 내가 등록한 상품들</h2>
+        <h2>나의 등록 상품들</h2>
       </header>
 
       <main className="my-products-main">
@@ -84,8 +84,8 @@ const MyProductsPage = () => {
               <div className="my-products-card-info">
                 <h3 className="my-products-name">{product.name}</h3>
                 <div className="my-products-price-box">
-                  <span className="my-products-price">{product.highestOrderPrice.toLocaleString()}원</span>
-                  <span className="my-products-price">{product.buyNowPrice.toLocaleString()}원</span>
+                  <span className="my-products-highest-price">{product.highestOrderPrice.toLocaleString()}원</span>
+                  <span className="my-products-buy-now-price">{product.buyNowPrice.toLocaleString()}원</span>
                 </div>
                 <div className="my-products-end-date">
                   {new Date(product.endDate).toLocaleString()}

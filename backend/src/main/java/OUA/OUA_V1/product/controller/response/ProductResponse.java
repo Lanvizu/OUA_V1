@@ -1,5 +1,7 @@
 package OUA.OUA_V1.product.controller.response;
 
+import OUA.OUA_V1.product.domain.ProductStatus;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,7 +14,7 @@ public record ProductResponse(
         LocalDateTime endDate,
         Integer categoryId,
         List<String> imageUrls,
-        boolean onSale,
+        ProductStatus status,
         boolean isOwner
 ) {
 }

@@ -74,67 +74,83 @@ const AccountDetailsPage = () => {
 
   return (
     <div className="account-details-container">
-      <div className='account-detail-title'>계정 정보</div>
+      <h1 className="account-detail-title">계정 관리</h1>
       
       <form onSubmit={handleNicknameUpdate} className="details-form">
+        {/* 이메일 필드 */}
         <div className="account-detail-form-group">
-          <label>이메일</label>
+          <label className='AD-label'>이메일 주소</label>
           <div className="email-group-inline">
             {accountDetails.email}
           </div>
         </div>
 
+        {/* 이름 필드 */}
         <div className="account-detail-form-group">
-          <label>이름</label>
+          <label className='AD-label'>실명</label>
           <div className="name-group-inline">
             {accountDetails.name}
           </div>
         </div>
 
+        {/* 닉네임 필드 */}
         <div className="account-detail-form-group">
-          <label>닉네임</label>
+          <label className='AD-label'>닉네임</label>
           <div className="nickname-group-inline">
             <input
               className='account-dtatil-input'
-              type="text"
+              type="text" 
               value={newNickName}
               onChange={(e) => setNewNickName(e.target.value)}
+              placeholder="새 닉네임 입력"
               maxLength="15"
             />
             <button type="submit" className="update-button">
-              닉네임 변경
+              <span>변경</span>
             </button>
           </div>
         </div>
 
+        {/* 전화번호 필드 */}
         <div className="account-detail-form-group">
-          <label>전화번호</label>
+          <label className='AD-label'>연락처</label>
           <div className="phone-group-inline">
-            {accountDetails.phone}
+            {accountDetails.phone || '미등록'}
           </div>
         </div>
 
+        {/* 보안 설정 섹션 */}
         <div className="account-detail-form-group">
-          <a href="/password-update" className="account-detail-password-link">비밀번호 변경 페이지</a>
+          <label className='AD-label'>보안 설정</label>
+          <div className="security-settings">
+            <a href="/password-update" className="account-detail-password-link">
+              🔒 비밀번호 변경
+            </a>
+          </div>
         </div>
 
-        
+        {/* 계정 삭제 섹션 */}
+        <div className="delete-account-section">
+          <label className='AD-label'>계정 삭제</label>
+          <button 
+            type="button"
+            className="delete-account-button"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            🗑️ 계정 삭제
+          </button>
+        </div>
       </form>
 
-      <button 
-        className="delete-account-button"
-        onClick={() => setShowDeleteConfirm(true)}
-      >
-        계정 삭제
-      </button>
-
+      {/* 삭제 확인 모달 */}
       {showDeleteConfirm && (
         <div className="delete-confirm-modal">
           <div className="modal-content">
             <h3>정말 계정을 삭제하시겠습니까?</h3>
-            <p>삭제된 계정은 복구할 수 없습니다</p>
+            <p>⚠️ 모든 계정 정보와 활동 기록이 영구적으로 삭제됩니다</p>
+            
             <div className="modal-buttons">
-              <button onClick={handleAccountDelete}>삭제</button>
+              <button onClick={handleAccountDelete}>예, 삭제합니다</button>
               <button onClick={() => setShowDeleteConfirm(false)}>취소</button>
             </div>
           </div>

@@ -55,8 +55,9 @@ public class Product extends BaseEntity implements SecureResource {
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
-    @Column(name = "on_sale", nullable = false)
-    private Boolean onSale;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProductStatus status;
 
     @Column(name = "category_id", nullable = false)
     private Integer categoryId;
@@ -80,7 +81,7 @@ public class Product extends BaseEntity implements SecureResource {
         this.initialPrice = initialPrice;
         this.highestOrderPrice = initialPrice;
         this.buyNowPrice = buyNowPrice;
-        this.onSale = true;
+        this.status = ProductStatus.ACTIVE;
         this.endDate = endDate;
         this.categoryId = categoryId;
         this.imageUrls = imageUrls;
@@ -98,8 +99,12 @@ public class Product extends BaseEntity implements SecureResource {
         }
     }
 
-    public void endAuction(){
-        this.onSale = false;
+    public void soldAuction(){
+        this.status = ProductStatus.SOLD;
+    }
+
+    public void unSoldAuction(){
+        this.status = ProductStatus.UNSOLD;
     }
 
     public void updateHighestOrder(Long orderId, int orderPrice) {
@@ -117,7 +122,7 @@ public class Product extends BaseEntity implements SecureResource {
     }
 
     public void cancel(){
-        this.onSale = false;
+        this.status = ProductStatus.CANCELED;
     }
 
     @Override

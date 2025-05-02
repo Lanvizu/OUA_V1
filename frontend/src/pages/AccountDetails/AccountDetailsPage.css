@@ -1,130 +1,200 @@
 .account-details-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  .account-detail-title{
-    color: #333;
-    margin-bottom: 10px;
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
-  
-  .details-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  
-  .account-detail-form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  label {
-    font-weight: 600;
-    color: #555;
-  }
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
 
+.account-detail-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f2f5;
+  margin-bottom: 2rem;
+}
+
+.details-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+.account-detail-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.account-detail-form-group:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.AD-label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.account-dtatil-input {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.account-dtatil-input:focus {
+  border-color: #8ad89b;
+  box-shadow: 0 0 0 3px rgba(138, 216, 155, 0.25);
+}
+
+.nickname-group-inline {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+}
+
+.update-button {
+  padding: 10px 12px;
+  background: #8ad89b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.update-button:hover {
+  background: #6ccb81;
+  transform: translateY(-1px);
+}
+
+.account-detail-password-link {
+  color: #8ad89b;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.account-detail-password-link:hover {
+  text-decoration: underline;
+}
+
+.delete-account-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: #fff8f6;
+  border: 1px solid #ffe3e3;
+  border-radius: 8px;
+}
+
+.delete-account-button {
+  background: #ff6b6b;
+  color: white;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delete-account-button:hover {
+  background: #ff5252;
+  transform: translateY(-1px);
+}
+
+.delete-confirm-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.modal-content h3 {
+  color: #e74c3c;
+  margin-bottom: 1.2rem;
+  font-size: 1.4rem;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.modal-buttons button {
+  padding: 0.8rem 2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.modal-buttons button:first-child {
+  background: #ff6b6b;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.modal-buttons button:first-child:hover {
+  background: #ff5252;
+}
+
+.modal-buttons button:last-child {
+  background: #f1f3f5;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  cursor: pointer;
+}
+
+.modal-buttons button:last-child:hover {
+  background: #e9ecef;
+}
+
+@media (max-width: 700px) {
+  .details-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .account-details-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
   .nickname-group-inline {
-    display: flex;
+    grid-template-columns: 1fr;
   }
   
   .update-button {
-    align-self: flex-end;
-    padding: 10px;
-    background-color: #8ad89b;
-    color: white; 
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    display: flex;
-    justify-content: flex-end;
-    margin-left: auto;
-  }
-  
-  .update-button:hover {
-    background-color: #218838;
-  }
-  
-  .delete-account-button {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #de717c;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    display: flex;
-    justify-content: flex-end;
-    margin-left: auto;
-  }
-  .account-detail-password-link{
-    text-decoration: none;
-    font-size: 14px;
-    cursor: pointer;
-    color: rgb(52, 59, 70);
-    line-height: 20px;
-    text-decoration: none;
-    font-weight: 500;
-    cursor: pointer;
-  }
-  
-  .delete-account-button:hover {
-    background-color: #c82333;
-  }
-  
-  .delete-confirm-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
+    width: 100%;
     justify-content: center;
-    align-items: center;
   }
-  
-  .modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    text-align: center;
-  }
-  
-  .modal-content h3 {
-    color: #dc3545;
-    margin-bottom: 1rem;
-  }
-  
-  .modal-content p {
-    margin-bottom: 2rem;
-    color: #666;
-  }
-  
-  .modal-buttons button {
-    margin: 0 1rem;
-    padding: 0.5rem 1.5rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .modal-buttons button:first-child {
-    background-color: #dc3545;
-    color: white;
-  }
-  
-  .modal-buttons button:last-child {
-    background-color: #6c757d;
-    color: white;
-  }
-  
+}

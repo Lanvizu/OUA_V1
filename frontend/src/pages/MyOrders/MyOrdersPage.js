@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './MyOrdersPage.css';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
+import RightArrowIcon from '../../assets/images/icon-right.png';
+import LeftArrowIcon from '../../assets/images/icon-left.png';
 
 const MyOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -12,10 +14,8 @@ const MyOrdersPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Helper to get query param with default
   const getQueryParam = (key, defaultValue) => searchParams.get(key) || defaultValue;
 
-  // Fetch my orders
   const fetchOrders = async () => {
     setLoading(true);
     setError(null);
@@ -49,12 +49,10 @@ const MyOrdersPage = () => {
       size: getQueryParam('size', 10),
     });
     setSearchParams(updatedParams);
-    // fetchOrders는 useEffect에서 자동 호출됨
   };
 
   useEffect(() => {
     fetchOrders();
-    // eslint-disable-next-line
   }, [searchParams]);
 
   // 주문 상세(상품 상세)로 이동
@@ -69,28 +67,34 @@ const MyOrdersPage = () => {
           <span className="order-status">{order.status}</span>
           <span className="order-price">{order.orderPrice.toLocaleString()}원</span>
         </div>
-        <div className="order-dates">
-          <span>종료일: {new Date(order.productEndDate).toLocaleString()}</span>
+        <div className='order-dates-and-id'>
+          <div className="order-id">주문번호: {order.orderId}</div>
+          <span className="order-dates">{new Date(order.productEndDate).toLocaleString()}</span>
         </div>
-        <div className="order-id">주문번호: {order.orderId}</div>
       </div>
     </div>
   );
 
-  // 페이지네이션 컴포넌트
   const Pagination = ({ pageInfo }) => (
     <div className="pagination">
-      <button onClick={() => updatePage(pageInfo.number - 1)} disabled={pageInfo.number === 0}>
-        이전
+      <button
+        className="pagination-btn"
+        onClick={() => updatePage(pageInfo.number - 1)}
+        disabled={pageInfo.totalPages === 0 || pageInfo.number === 0}
+        aria-label="이전 페이지"
+      >
+        <img src={LeftArrowIcon} alt="이전" className="pagination-arrow" />
       </button>
-      <span>
+      <span className="pagination-info">
         {pageInfo.number + 1} / {pageInfo.totalPages}
       </span>
       <button
+        className="pagination-btn"
         onClick={() => updatePage(pageInfo.number + 1)}
-        disabled={pageInfo.number + 1 === pageInfo.totalPages}
+        disabled={pageInfo.totalPages === 0 || pageInfo.number + 1 === pageInfo.totalPages}
+        aria-label="다음 페이지"
       >
-        다음
+        <img src={RightArrowIcon} alt="다음" className="pagination-arrow" />
       </button>
     </div>
   );
@@ -99,7 +103,7 @@ const MyOrdersPage = () => {
     <div className="my-orders-container">
       <LoadingOverlay show={loading} message="주문 정보를 불러오는 중입니다..." />
       <header className="my-orders-header">
-        <h1>내 주문 목록</h1>
+        <h2>내 입찰 목록</h2>
       </header>
 
       <main className="my-orders-content">

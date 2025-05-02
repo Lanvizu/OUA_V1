@@ -204,7 +204,7 @@ const SignUpPage = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="text-input"
+            className="signup-text-input"
             placeholder="이름 입력"
           />
         </div>
@@ -220,7 +220,7 @@ const SignUpPage = () => {
             value={nickName}
             onChange={(e) => setNickName(e.target.value)}
             required
-            className="text-input"
+            className="signup-text-input"
             placeholder="닉네임 입력"
           />
         </div>
@@ -238,12 +238,12 @@ const SignUpPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="text-input"
+              className="signup-text-input"
               placeholder="비밀번호 입력"
             />
             <button
               type="button"
-              className="password-toggle"
+              className="SU-password-toggle"
               onClick={() => setShowPassword(!showPassword)}
             >
               <img
@@ -267,12 +267,12 @@ const SignUpPage = () => {
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
               required
-              className="text-input"
+              className="signup-text-input"
               placeholder="비밀번호 확인"
             />
             <button
               type="button"
-              className="password-toggle"
+              className="SU-password-toggle"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
               <img
@@ -304,7 +304,7 @@ const SignUpPage = () => {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
-            className="text-input"
+            className="signup-text-input"
             placeholder="'-' 없이 입력하세요."
           />
         </div>

@@ -1,13 +1,74 @@
-.my-orders-container { max-width: 800px; margin: 0 auto; }
-.my-orders-header { padding: 24px 0; text-align: center; }
-.order-list { display: flex; flex-direction: column; gap: 16px; }
-.order-card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; background: #fff; transition: box-shadow 0.2s; }
-.order-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-.order-product-name { font-size: 1.2rem; margin-bottom: 8px; }
-.order-meta { display: flex; gap: 16px; margin-bottom: 8px; }
-.order-status { font-weight: bold; color: #007bff; }
-.order-price { color: #e67e22; }
-.order-dates { font-size: 0.95rem; color: #555; margin-bottom: 4px; }
-.order-id { font-size: 0.9rem; color: #aaa; }
-.pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 24px 0; }
-.error { color: red; text-align: center; }
+.my-orders-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .my-orders-header {
+    margin-bottom: 40px;
+    padding: 10px 0 20px;
+    border-bottom: 2px solid #eee;
+  }
+  .order-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 768px) {
+    .order-list {
+      grid-template-columns: 1fr;
+    }
+  }
+  .order-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    background: #fff;
+    transition: box-shadow 0.2s;
+  }
+  .order-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .order-product-name {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+  }
+  .order-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+  .order-dates-and-id {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .order-status {
+    font-weight: bold;
+    color: #007bff;
+  }
+  .order-price {
+    color: #e67e22;
+  }
+  .order-dates {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+  }
+
+  .order-id {
+    font-size: 0.9rem;
+    color: #aaa;
+  }
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .error {
+    color: red;
+    text-align: center;
+  }
+  
