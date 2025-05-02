@@ -15,6 +15,9 @@
     max-width: 400px;
     width: 100%;
 }
+.PR-text-input {
+  font-size: 16px; 
+}
 
 .product-register-title {
     color: rgb(52, 59, 70);

@@ -140,14 +140,14 @@ label {
   width: 100%;
 }
 
-.text-input {
+.signup-text-input {
   flex: 1;
   padding: 12px;
   border-radius: 5px;
   border: 1px solid #ccc;
 }
 
-.text-input:focus {
+.signup-text-input:focus {
   outline: none;
   border-color: #007bff;
 }
@@ -159,7 +159,7 @@ label {
   position: relative;
 }
 
-.password-toggle {
+.SU-password-toggle {
   position: absolute;
   right: 10px;
   top: calc(50% - 10px);

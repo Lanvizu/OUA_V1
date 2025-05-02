@@ -85,9 +85,16 @@ const Main = () => {
       </div>
       <div className="product-card-info">
         <h2 className="product-name">{product.name}</h2>
-        <div className="product-price-box">
-          <p className="product-price">{product.highestOrderPrice.toLocaleString()}원</p>
-          <p className="product-price">{product.buyNowPrice.toLocaleString()}원</p>
+        <div className="product-meta">
+          <div className="product-price-box">
+            <p className="product-highest-price">{product.highestOrderPrice.toLocaleString()}원</p>
+            <p className="product-buy-now-price">{product.buyNowPrice.toLocaleString()}원</p>
+          </div>
+          <p
+            className={`product-status ${product.status !== 'ACTIVE' ? 'product-status-inactive' : ''}`}
+          >
+            {product.status}
+          </p>
         </div>
         <p className="product-end-date">{new Date(product.endDate).toLocaleString()}</p>
       </div>

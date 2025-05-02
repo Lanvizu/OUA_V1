@@ -4,6 +4,7 @@ import './ProductPage.css';
 import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
 import RightArrowIcon from '../../assets/images/icon-right.png';
 import LeftArrowIcon from '../../assets/images/icon-left.png';
+import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 
 const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
 
@@ -12,21 +13,23 @@ const ProductPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
+  
   const [error, setError] = useState('');
+  const [ordersError, setOrdersError] = useState('');
+  const [cancelError, setCancelError] = useState('');
+  const [ordersModalError, setOrdersModalError] = useState('');
+
   const [orderPrice, setOrderPrice] = useState('');
   const [orderCount, setOrderCount] = useState(0);
   const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [myOrder, setMyOrder] = useState(null);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-  const [ordersError, setOrdersError] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
-  const [cancelError, setCancelError] = useState('');
 
-  const [ordersModalLoading, setOrdersModalLoading] = useState(false);
-  const [ordersModalError, setOrdersModalError] = useState('');
   const [ordersModalData, setOrdersModalData] = useState({ content: [], page: {} });
   const [ordersModalPage, setOrdersModalPage] = useState(0);
+
+  const [globalLoading, setGlobalLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -63,17 +66,32 @@ const ProductPage = () => {
   };
 
   useEffect(() => {
-    if (!product?.onSale) return;
+    if (!product?.status === 'ACTIVE') return;
   
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
   
     return () => clearInterval(timer);
-  }, [product?.endDate, product?.onSale]);
+  }, [product?.endDate, !product?.status === 'ACTIVE']);
+
+  const getStatusMessage = (status) => {
+    switch(status) {
+      case 'ENDED':
+        return '경매 종료';
+      case 'SOLD':
+        return '낙찰 완료';
+      case 'CANCELED':
+        return '판매 취소';
+      case 'DELETED':
+        return '삭제된 상품';
+      default:
+        return '경매 정보 없음';
+    }
+  }
 
   const handleOrder = async () => {
-    if (!product.onSale) {
+    if (product.status !== 'ACTIVE') {
       alert("경매가 종료되어 입찰이 불가능합니다");
       return;
     }
@@ -166,6 +184,8 @@ const ProductPage = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
+      setGlobalLoading(true);
+      setLoadingMessage('상품 정보를 불러오는 중입니다...');
       try {
         const response = await fetch(`/v1/product/${productId}`);
         if (!response.ok) {
@@ -180,7 +200,7 @@ const ProductPage = () => {
       } catch (err) {
         setError(err.message);
       } finally {
-        setLoading(false);
+        setGlobalLoading(false);
       }
     };
 
@@ -188,8 +208,9 @@ const ProductPage = () => {
   }, [productId]);
 
   const fetchOrders = async () => {
-    setOrdersLoading(true);
     setOrdersError('');
+    setGlobalLoading(true);
+    setLoadingMessage('입찰 정보를 불러오는 중입니다...');
     try {
       const response = await fetch(`/v1/product/${productId}/orders`, {
         credentials: 'include',
@@ -201,7 +222,7 @@ const ProductPage = () => {
     } catch (err) {
       setOrdersError(err.message);
     } finally {
-      setOrdersLoading(false);
+      setGlobalLoading(false);
     }
   };
 
@@ -215,8 +236,6 @@ const ProductPage = () => {
     }
   }, [myOrder]);
 
-
-  if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
 
   const handleCancelOrder = async () => {
@@ -225,6 +244,8 @@ const ProductPage = () => {
     
     setCancelLoading(true);
     setCancelError('');
+    setGlobalLoading(true);
+    setLoadingMessage('입찰을 취소하는 중입니다...');
     try {
       const response = await fetch(`/v1/product/${productId}/orders/${myOrder.orderId}/cancel`, {
         method: 'POST',
@@ -239,11 +260,12 @@ const ProductPage = () => {
       setCancelError(err.message);
     } finally {
       setCancelLoading(false);
+      setGlobalLoading(false);
     }
   };
 
   const handleBuyNow = async () => {
-    if (!product.onSale) {
+    if (product.status !== 'ACTIVE') {
       alert("경매가 종료되어 즉시 구매가 불가능합니다");
       return;
     }
@@ -269,20 +291,21 @@ const ProductPage = () => {
   };
 
   const fetchOrderDetails = async (page = 0) => {
-    setOrdersModalLoading(true);
     setOrdersModalError('');
+    setGlobalLoading(true);
+    setLoadingMessage('입찰 내역을 불러오는 중입니다...');
     try {
       const response = await fetch(`/v1/product/${productId}/total-orders?page=${page}&size=10`, {
         credentials: 'include',
       });
-      if (!response.ok) throw new Error('주문 내역을 불러오는데 실패했습니다.');
+      if (!response.ok) throw new Error('입찰 내역을 불러오는데 실패했습니다.');
       const data = await response.json();
       setOrdersModalData(data);
       setOrdersModalPage(page);
     } catch (err) {
       setOrdersModalError(err.message);
     } finally {
-      setOrdersModalLoading(false);
+      setGlobalLoading(false);
     }
   };
 
@@ -304,300 +327,312 @@ const ProductPage = () => {
 
   return (
     <div className="product-container">
-      <div className="image-carousel">
-        <button
-          className="nav-button prev"
-          onClick={handlePrev}
-          disabled={product.imageUrls.length <= 1}
-        >
-          <img src={LeftArrowIcon} alt="이전" className="product-pagination-arrow" />
-        </button>
-
-        {product.imageUrls.map((url, index) => (
-          <img
-            key={index}
-            src={url}
-            alt={`상품 이미지 ${index + 1}`}
-            className={`product-image ${index === currentImageIndex ? 'active' : ''}`}
-            onClick={() => openImageModal(index)}
-          />
-        ))}
-
-        <button
-          className="nav-button next"
-          onClick={handleNext}
-          disabled={product.imageUrls.length <= 1}
-        >
-          <img src={RightArrowIcon} alt="다음" className="product-pagination-arrow" />
-        </button>
-
-        <div className="carousel-dots">
-          {product.imageUrls.map((_, index) => (
-            <span
-              key={index}
-              className={`dot ${index === currentImageIndex ? 'active' : ''}`}
-              onClick={() => setCurrentImageIndex(index)}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* 이미지 모달 */}
-      {showModal && (
-        <div className="image-modal" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <span className="close" onClick={() => setShowModal(false)}>
-              &times;
-            </span>
-            <img
-              src={product.imageUrls[currentImageIndex]}
-              alt={`확대 보기 ${currentImageIndex + 1}`}
-              className="modal-image"
-            />
-            <button className="modal-nav prev" onClick={handlePrev}>
-              <img src={LeftArrowIcon} alt="이전" className="product-pagination-arrow" />
-            </button>
-            <button className="modal-nav next" onClick={handleNext}>
-              <img src={RightArrowIcon} alt="다음" className="product-pagination-arrow" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 상품 정보 섹션 */}
-      <div className="product-details">
-        <div className="product-header">
-          <h1 className="product-title">{product.name}</h1>
-          
-        </div>
-        <div className="info-category">
-          <span className="info-value category">
-            {CATEGORY_OPTIONS.find((opt) => opt.value === product.categoryId)?.label ||
-              '알 수 없는 카테고리'}
-          </span>
-        </div>
-        <div className="price-section">
-          <div className="price-item">
-            <span className="price-label">{product.onSale ? 
-              "최고 입찰가" : 
-              "최종 낙찰가"
-            }</span>
-            <span className="price-value">{product.highestOrderPrice.toLocaleString()}원</span>
-          </div>
-          <div className="price-item">
-            <span className="price-label">즉시 구매가</span>
-            <span className="price-value buy-now">
-              {product.buyNowPrice.toLocaleString()}원
-            </span>
-          </div>
-        </div>
-
-        <div className="info-box">
-          <div className="info-item">
-            <span className="info-label">남은 시간</span>
-            {product.onSale ? (
-              <div className="time-display">
-                <p className="info-value countdown">
-                  {formatTime(timeLeft)}
-                </p>
-                <p className="info-value end-time">
-                  ({new Date(product.endDate).toLocaleString()})
-                </p>
-              </div>
-            ) : (
-              <span className="info-value">경매 종료</span>
-            )}
-          </div>
-        </div>
-
-        {/* 주문 정보 섹션 */}
-        <div className="order-info-section">
-          {ordersLoading ? (
-            <div>주문 정보를 불러오는 중...</div>
-          ) : ordersError ? (
-            <div className="error">{ordersError}</div>
-          ) : (
+      <LoadingOverlay show={globalLoading} message={loadingMessage} />
+      {globalLoading || !product ? null : (
+        <>
+          <div className="image-carousel">
+          {product.imageUrls.length > 0 ? (
             <>
-              {/* 주문 수 및 상세 보기 버튼 */}
-              <div className="order-summary">
-                <span>총 입찰 건수: {orderCount}</span>
-                {product.isOwner && (
-                  <button 
-                    onClick={handleShowOrdersModal}
-                    className="view-details-btn"
-                    disabled={orderCount === 0}
-                  >
-                    {orderCount > 0 ? '[입찰 기록]' : '입찰 없음'}
-                  </button>
-                )}
-              </div>
+              <button
+                className="nav-button prev"
+                onClick={handlePrev}
+                disabled={product.imageUrls.length <= 1}
+              >
+                <img src={LeftArrowIcon} alt="이전" className="product-pagination-arrow" />
+              </button>
 
-              {/* 주문 모달 창 */}
-              {showOrdersModal && (
-                <div className="modal-overlay">
-                  <div className="modal">
-                    <div className="modal-header">
-                      <h3>상세 입찰 내역</h3>
-                      <button onClick={handleCloseOrdersModal} className="modal-close-btn">×</button>
-                    </div>
-                    {ordersModalLoading ? (
-                      <div>로딩 중...</div>
-                    ) : ordersModalError ? (
-                      <div className="error">{ordersModalError}</div>
-                    ) : (
-                      <>
-                        <table className="orders-table">
-                          <thead>
-                            <tr>
-                              <th>주문번호</th>
-                              <th>입찰가</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {ordersModalData.content.length > 0 ? (
-                              ordersModalData.content.map((order) => (
-                                <tr key={order.orderId}>
-                                  <td>{order.orderId}</td>
-                                  <td>{order.orderPrice.toLocaleString()}원</td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td colSpan={3}>입찰 내역이 없습니다.</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                        {/* 페이지네이션 */}
-                        <div className="modal-pagination">
-                          <button
-                            onClick={() => handleOrdersModalPageChange(ordersModalPage - 1)}
-                            disabled={ordersModalPage === 0}
-                          >
-                            이전
-                          </button>
-                          <span>
-                            {ordersModalPage + 1} / {ordersModalData.page.totalPages || 1}
-                          </span>
-                          <button
-                            onClick={() => handleOrdersModalPageChange(ordersModalPage + 1)}
-                            disabled={
-                              ordersModalData.page.totalPages
-                                ? ordersModalPage + 1 >= ordersModalData.page.totalPages
-                                : true
-                            }
-                          >
-                            다음
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* 내 주문 정보 표시 */}
-              {myOrder && (
-                <div className="my-order-box">
-                  <span>내 입찰가: {myOrder.orderPrice.toLocaleString()}원</span>
-                  <button
-                    onClick={!product.onSale ? undefined : handleCancelOrder}
-                    disabled={!product.onSale || cancelLoading}
-                    className="cancel-button"
-                  >
-                    {!product.onSale ? "취소 불가" : (cancelLoading ? '취소 중...' : '취소')}
-                  </button>
-                  {cancelError && (
-                    <div style={{ color: 'red', marginTop: 4 }}>{cancelError}</div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-        <div className="button-group">
-            <div className="order-section-vertical">
-              <div className="order-row">
-              <div className="order-input-group">
-                <button
-                  type="button"
-                  className="order-arrow left"
-                  onClick={() => {
-                    const min = product.highestOrderPrice + 1000;
-                    setOrderPrice((prev) => {
-                      const next = Math.max(min, (parseInt(prev || min, 10) - 1000));
-                      return next.toString();
-                    });
-                  }}
-                  aria-label="1000원 감소"
-                >
-                  <img src={LeftArrowIcon} alt="1000원 감소" />
-                </button>
-                <input
-                  type="number"
-                  value={orderPrice}
-                  onChange={(e) => setOrderPrice(e.target.value.replace(/\D/g, ''))}
-                  placeholder="입찰가"
-                  className="order-input"
-                  min={product.highestOrderPrice + 1000}
-                  max={product.buyNowPrice}
-                  disabled={!product.onSale || product.isOwner}
+              {product.imageUrls.map((url, index) => (
+                <img
+                  key={index}
+                  src={url}
+                  alt={`상품 이미지 ${index + 1}`}
+                  className={`product-image ${index === currentImageIndex ? 'active' : ''}`}
+                  onClick={() => openImageModal(index)}
                 />
-                <span className="input-suffix">원</span>
-                <button
-                  type="button"
-                  className="order-arrow right"
-                  onClick={() => {
-                    const min = product.highestOrderPrice + 1000;
-                    const max = product.buyNowPrice;
-                    setOrderPrice((prev) => {
-                      const next = Math.min(max, (parseInt(prev || min, 10) + 1000));
-                      return next.toString();
-                    });
-                  }}
-                  aria-label="1000원 증가"
-                >
-                  <img src={RightArrowIcon} alt="1000원 증가" />
-                </button>
+              ))}
+
+              <button
+                className="nav-button next"
+                onClick={handleNext}
+                disabled={product.imageUrls.length <= 1}
+              >
+                <img src={RightArrowIcon} alt="다음" className="product-pagination-arrow" />
+              </button>
+
+              <div className="carousel-dots">
+                {product.imageUrls.map((_, index) => (
+                  <span
+                    key={index}
+                    className={`dot ${index === currentImageIndex ? 'active' : ''}`}
+                    onClick={() => setCurrentImageIndex(index)}
+                  />
+                ))}
               </div>
-                <div className="buy-now-price">
-                  <span className="buy-now-value">{product.buyNowPrice.toLocaleString()}</span>
-                  <span className="input-suffix">원</span>
-                </div>
-              </div>
-              <div className="order-row">
-                <button 
-                  className="order-button"
-                  onClick={!product.onSale ? undefined : handleOrder}
-                  disabled={!product.onSale || (!orderPrice && !myOrder)}
-                  title={!product.onSale ? "경매가 종료되어 입찰이 불가능합니다" : ""}
-                >
-                  {!product.onSale ? "경매 종료" : (myOrder ? "입찰가 변경" : "입찰하기")}
+            </>
+          ) : (
+            <div className="placeholder-image">이미지가 없습니다</div>
+          )}
+          </div>
+          
+
+          {/* 이미지 모달 */}
+          {showModal && (
+            <div className="image-modal" onClick={() => setShowModal(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <span className="close" onClick={() => setShowModal(false)}>
+                  &times;
+                </span>
+                <img
+                  src={product.imageUrls[currentImageIndex]}
+                  alt={`확대 보기 ${currentImageIndex + 1}`}
+                  className="modal-image"
+                />
+                <button className="modal-nav prev" onClick={handlePrev}>
+                  <img src={LeftArrowIcon} alt="이전" className="product-pagination-arrow" />
                 </button>
-                <button 
-                  className="buy-now-button"
-                  onClick={!product.onSale ? undefined : handleBuyNow}
-                  disabled={!product.onSale || product.isOwner}
-                  title={!product.onSale ? "경매가 종료되어 즉시 구매가 불가능합니다" : ""}
-                >
-                  즉시 구매
+                <button className="modal-nav next" onClick={handleNext}>
+                  <img src={RightArrowIcon} alt="다음" className="product-pagination-arrow" />
                 </button>
               </div>
             </div>
-        </div>
-        
-        {product.isOwner && (
-          <div className="delete-section">
-            <button 
-              className="delete-product-button"
-              onClick={handleDeleteProduct}
-            >
-              상품 삭제
-            </button>
+          )}
+
+          {/* 상품 정보 섹션 */}
+          <div className="product-details">
+            <div className="product-header">
+              <h1 className="product-title">{product.name}</h1>
+              
+            </div>
+            <div className="info-category">
+              <span className="info-value category">
+                {CATEGORY_OPTIONS.find((opt) => opt.value === product.categoryId)?.label ||
+                  '알 수 없는 카테고리'}
+              </span>
+            </div>
+            <div className="price-section">
+              <div className="price-item">
+                <span className="price-label">{product.status === 'ACTIVE' ? 
+                  "최고 입찰가" : 
+                  "최종 낙찰가"
+                }</span>
+                <span className="price-value">{product.highestOrderPrice.toLocaleString()}원</span>
+              </div>
+              <div className="price-item">
+                <span className="price-label">즉시 구매가</span>
+                <span className="price-value buy-now">
+                  {product.buyNowPrice.toLocaleString()}원
+                </span>
+              </div>
+            </div>
+
+            <div className="info-box">
+              <div className="info-item">
+                <span className="info-label">남은 시간</span>
+                {product.status === 'ACTIVE' ? (
+                  <div className="time-display">
+                    <p className="info-value countdown">
+                      {formatTime(timeLeft)}
+                    </p>
+                    <p className="info-value end-time">
+                      ({new Date(product.endDate).toLocaleString()})
+                    </p>
+                  </div>
+                ) : (
+                  <span className="info-value">
+                    {getStatusMessage(product.status)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 주문 정보 섹션 */}
+            <div className="order-info-section">
+              {ordersError ? (
+                <div className="error">{ordersError}</div>
+              ) : (
+                <>
+                  {/* 주문 수 및 상세 보기 버튼 */}
+                  <div className="order-summary">
+                    <span>총 입찰 건수: {orderCount}</span>
+                    {product.isOwner && (
+                      <button 
+                        onClick={handleShowOrdersModal}
+                        className="view-details-btn"
+                        disabled={orderCount === 0}
+                      >
+                        {orderCount > 0 ? '[입찰 기록]' : '입찰 없음'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 주문 모달 창 */}
+                  {showOrdersModal && (
+                    <div className="modal-overlay">
+                      <div className="modal">
+                        <div className="modal-header">
+                          <h3>상세 입찰 내역</h3>
+                          <button onClick={handleCloseOrdersModal} className="modal-close-btn">×</button>
+                        </div>
+                        {ordersModalError ? (
+                          <div className="error">{ordersModalError}</div>
+                        ) : (
+                          <>
+                            <table className="orders-table">
+                              <thead>
+                                <tr>
+                                  <th>주문번호</th>
+                                  <th>입찰가</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {ordersModalData.content.length > 0 ? (
+                                  ordersModalData.content.map((order) => (
+                                    <tr key={order.orderId}>
+                                      <td>{order.orderId}</td>
+                                      <td>{order.orderPrice.toLocaleString()}원</td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr>
+                                    <td colSpan={3}>입찰 내역이 없습니다.</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                            {/* 페이지네이션 */}
+                            <div className="modal-pagination">
+                              <button
+                                onClick={() => handleOrdersModalPageChange(ordersModalPage - 1)}
+                                disabled={ordersModalPage === 0}
+                              >
+                                이전
+                              </button>
+                              <span>
+                                {ordersModalPage + 1} / {ordersModalData.page.totalPages || 1}
+                              </span>
+                              <button
+                                onClick={() => handleOrdersModalPageChange(ordersModalPage + 1)}
+                                disabled={
+                                  ordersModalData.page.totalPages
+                                    ? ordersModalPage + 1 >= ordersModalData.page.totalPages
+                                    : true
+                                }
+                              >
+                                다음
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 내 주문 정보 표시 */}
+                  {myOrder && (
+                    <div className="my-order-box">
+                      <span>내 입찰가: {myOrder.orderPrice.toLocaleString()}원</span>
+                      <button
+                        onClick={product.status !== 'ACTIVE' ? undefined : handleCancelOrder}
+                        disabled={product.status !== 'ACTIVE' || cancelLoading}
+                        className="cancel-button"
+                      >
+                        {product.status !== 'ACTIVE' ? "취소 불가" : (cancelLoading ? '취소 중...' : '취소')}
+                      </button>
+                      {cancelError && (
+                        <div style={{ color: 'red', marginTop: 4 }}>{cancelError}</div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="button-group">
+                <div className="order-section-vertical">
+                  <div className="order-row">
+                  <div className="order-input-group">
+                    <button
+                      type="button"
+                      className="order-arrow left"
+                      onClick={() => {
+                        const min = product.highestOrderPrice + 1000;
+                        setOrderPrice((prev) => {
+                          const next = Math.max(min, (parseInt(prev || min, 10) - 1000));
+                          return next.toString();
+                        });
+                      }}
+                      disabled={product.status !== 'ACTIVE' || product.isOwner}
+                      aria-label="1000원 감소"
+                    >
+                      <img src={LeftArrowIcon} alt="1000원 감소" />
+                    </button>
+                    <input
+                      type="number"
+                      value={orderPrice}
+                      onChange={(e) => setOrderPrice(e.target.value.replace(/\D/g, ''))}
+                      placeholder="입찰가"
+                      className="order-input"
+                      min={product.highestOrderPrice + 1000}
+                      max={product.buyNowPrice}
+                      disabled={product.status !== 'ACTIVE' || product.isOwner}
+                    />
+                    <span className="input-suffix">원</span>
+                    <button
+                      type="button"
+                      className="order-arrow right"
+                      onClick={() => {
+                        const min = product.highestOrderPrice + 1000;
+                        const max = product.buyNowPrice;
+                        setOrderPrice((prev) => {
+                          const next = Math.min(max, (parseInt(prev || min, 10) + 1000));
+                          return next.toString();
+                        });
+                      }}
+                      disabled={product.status !== 'ACTIVE' || product.isOwner}
+                      aria-label="1000원 증가"
+                    >
+                      <img src={RightArrowIcon} alt="1000원 증가" />
+                    </button>
+                  </div>
+                    <div className="buy-now-price">
+                      <span className="buy-now-value">{product.buyNowPrice.toLocaleString()}</span>
+                      <span className="input-suffix">원</span>
+                    </div>
+                  </div>
+                  <div className="order-row">
+                    <button 
+                      className="order-button"
+                      onClick={product.status !== 'ACTIVE' ? undefined : handleOrder}
+                      disabled={product.status !== 'ACTIVE' || (!orderPrice && !myOrder)}
+                      title={product.status !== 'ACTIVE' ? "경매가 종료되어 입찰이 불가능합니다" : ""}
+                    >
+                      {product.status !== 'ACTIVE' ? "경매 종료" : (myOrder ? "입찰가 변경" : "입찰하기")}
+                    </button>
+                    <button 
+                      className="buy-now-button"
+                      onClick={product.status !== 'ACTIVE' ? undefined : handleBuyNow}
+                      disabled={product.status !== 'ACTIVE' || product.isOwner}
+                      title={product.status !== 'ACTIVE' ? "경매가 종료되어 즉시 구매가 불가능합니다" : ""}
+                    >
+                      즉시 구매
+                    </button>
+                  </div>
+                </div>
+            </div>
+            
+            {product.isOwner && (
+              <div className="delete-section">
+                <button 
+                  className="delete-product-button"
+                  onClick={handleDeleteProduct}
+                >
+                  상품 삭제
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      <p className="product-description">{product.description}</p>
+          <p className="product-description">{product.description}</p>
+        </>
+      )}
     </div>
   );
 };
