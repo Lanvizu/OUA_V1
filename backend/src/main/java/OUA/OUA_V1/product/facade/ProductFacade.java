@@ -1,8 +1,12 @@
 package OUA.OUA_V1.product.facade;
 
+import OUA.OUA_V1.global.RedisLockTemplate;
 import OUA.OUA_V1.global.service.GcpStorageService;
+import OUA.OUA_V1.global.service.RedisService;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.service.MemberService;
+import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.service.OrderService;
 import OUA.OUA_V1.product.controller.request.ProductImagesRequest;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
 import OUA.OUA_V1.product.controller.response.ProductResponse;
@@ -26,12 +30,16 @@ public class ProductFacade {
     private final ProductService productService;
     private final MemberService memberService;
     private final GcpStorageService gcpStorageService;
+    private final RedisLockTemplate lockTemplate;
+    private final RedisService redisService;
+    private final OrderService orderService;
 
     @Transactional
     public Long registerProduct(Long memberId, ProductRegisterRequest productRequest, ProductImagesRequest imagesRequest) {
         Member member = memberService.findById(memberId);
         List<String> imageUrls = uploadImages(imagesRequest.images());
         Product product = productService.registerProduct(member, productRequest, imageUrls);
+        redisService.setAuctionExpiration(product.getId(), product.getEndDate());
         return product.getId();
     }
 
@@ -82,8 +90,26 @@ public class ProductFacade {
                 product.getEndDate(),
                 product.getCategoryId(),
                 product.getImageUrls(),
-                product.getOnSale(),
+                product.getStatus(),
                 isOwner
+        );
+    }
+
+    @Transactional
+    public void finalizeAuction(Long productId) {
+        lockTemplate.executeWithLock(
+                productId,
+                () -> {
+                    Product product = productService.findById(productId);
+                    if(product.getHighestOrderId() != null){
+                        Order order = orderService.findById(product.getHighestOrderId());
+                        order.confirmOrder();
+                        product.soldAuction();
+                    }else {
+                        product.unSoldAuction();
+                    }
+                    // 해당 상품에 있는 모든 입찰 상태 변경 해야할까?
+                }
         );
     }
 }
