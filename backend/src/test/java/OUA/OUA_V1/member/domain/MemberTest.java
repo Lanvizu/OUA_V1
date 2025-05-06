@@ -9,7 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@DisplayName("유저 도메인 테스트")
+@DisplayName("사용자 도메인 테스트")
 public class MemberTest {
 
     @DisplayName("허용된 값들로 Member을 생성한다.")
