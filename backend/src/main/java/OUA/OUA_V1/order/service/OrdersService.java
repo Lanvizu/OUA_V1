@@ -3,7 +3,7 @@ package OUA.OUA_V1.order.service;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.order.controller.response.MyOrdersResponse;
 import OUA.OUA_V1.order.controller.response.OrdersResponse;
-import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.order.exception.OrderNotFoundException;
 import OUA.OUA_V1.order.repository.OrderRepository;
 import OUA.OUA_V1.product.domain.Product;
@@ -18,24 +18,24 @@ import java.util.Optional;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class OrderService {
+public class OrdersService {
 
     private final OrderRepository orderRepository;
 
     @Transactional
-    public Order createOrder(Member member, Product product, int orderPrice) {
-        Order order = new Order(member, product, orderPrice);
-        return orderRepository.save(order);
+    public Orders createOrder(Member member, Product product, int orderPrice) {
+        Orders orders = new Orders(member, product, orderPrice);
+        return orderRepository.save(orders);
     }
 
     @Transactional
-    public Order buyNowOrder(Member member, Product product) {
-        Order order = new Order(member, product, product.getBuyNowPrice());
-        order.confirmOrder();
-        return orderRepository.save(order);
+    public Orders buyNowOrder(Member member, Product product) {
+        Orders orders = new Orders(member, product, product.getBuyNowPrice());
+        orders.confirmOrder();
+        return orderRepository.save(orders);
     }
 
-    public Order findById(Long orderId) {
+    public Orders findById(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(OrderNotFoundException::new);
     }
@@ -60,32 +60,32 @@ public class OrderService {
                 .map(this::toMyOrdersResponse);
     }
 
-    private OrdersResponse toOrdersResponse(Order order) {
+    private OrdersResponse toOrdersResponse(Orders orders) {
         return new OrdersResponse(
-                order.getMember().getId(),
-                order.getId(),
-                order.getOrderPrice()
+                orders.getMember().getId(),
+                orders.getId(),
+                orders.getOrderPrice()
         );
     }
 
-    private MyOrdersResponse toMyOrdersResponse(Order order) {
+    private MyOrdersResponse toMyOrdersResponse(Orders orders) {
         return new MyOrdersResponse(
-                order.getProduct().getId(),
-                order.getProduct().getName(),
-                order.getProduct().getEndDate(),
-                order.getId(),
-                order.getOrderPrice(),
-                order.getStatus()
+                orders.getProduct().getId(),
+                orders.getProduct().getName(),
+                orders.getProduct().getEndDate(),
+                orders.getId(),
+                orders.getOrderPrice(),
+                orders.getStatus()
         );
     }
 
     @Transactional
-    public void cancelOrder(Order order) {
-        order.cancel();
-        order.markAsDeleted();
+    public void cancelOrder(Orders orders) {
+        orders.cancel();
+        orders.markAsDeleted();
     }
 
-    public Optional<Order> findHighestOrder(Long productId) {
+    public Optional<Orders> findHighestOrder(Long productId) {
         return orderRepository.findTopActiveByProductId(productId);
     }
 }

@@ -5,8 +5,8 @@ import OUA.OUA_V1.global.service.GcpStorageService;
 import OUA.OUA_V1.global.service.RedisService;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.service.MemberService;
-import OUA.OUA_V1.order.domain.Order;
-import OUA.OUA_V1.order.service.OrderService;
+import OUA.OUA_V1.order.domain.Orders;
+import OUA.OUA_V1.order.service.OrdersService;
 import OUA.OUA_V1.product.controller.request.ProductImagesRequest;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
 import OUA.OUA_V1.product.controller.response.ProductResponse;
@@ -32,7 +32,7 @@ public class ProductFacade {
     private final GcpStorageService gcpStorageService;
     private final RedisLockTemplate lockTemplate;
     private final RedisService redisService;
-    private final OrderService orderService;
+    private final OrdersService ordersService;
 
     @Transactional
     public Long registerProduct(Long memberId, ProductRegisterRequest productRequest, ProductImagesRequest imagesRequest) {
@@ -102,8 +102,8 @@ public class ProductFacade {
                 () -> {
                     Product product = productService.findById(productId);
                     if(product.getHighestOrderId() != null){
-                        Order order = orderService.findById(product.getHighestOrderId());
-                        order.confirmOrder();
+                        Orders orders = ordersService.findById(product.getHighestOrderId());
+                        orders.confirmOrder();
                         product.soldAuction();
                     }else {
                         product.unSoldAuction();

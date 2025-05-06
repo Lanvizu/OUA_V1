@@ -1,8 +1,8 @@
 package OUA.OUA_V1.order.repository.query;
 
-import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.order.domain.OrderStatus;
-import OUA.OUA_V1.order.domain.QOrder;
+import OUA.OUA_V1.order.domain.QOrders;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,7 +19,7 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
 
     @Override
     public long countByProductId(Long productId) {
-        QOrder order = QOrder.order;
+        QOrders order = QOrders.orders;
         Long count = queryFactory
                 .select(order.count())
                 .from(order)
@@ -32,10 +32,10 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     }
 
     @Override
-    public Page<Order> findAllByMemberId(Long memberId, Pageable pageable) {
-        QOrder order = QOrder.order;
+    public Page<Orders> findAllByMemberId(Long memberId, Pageable pageable) {
+        QOrders order = QOrders.orders;
 
-        List<Order> orders = queryFactory
+        List<Orders> orders = queryFactory
                 .selectFrom(order)
                 .where(
                         order.member.id.eq(memberId),
@@ -58,10 +58,10 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     }
 
     @Override
-    public Page<Order> findAllByProductId(Long productId, Pageable pageable) {
-        QOrder order = QOrder.order;
+    public Page<Orders> findAllByProductId(Long productId, Pageable pageable) {
+        QOrders order = QOrders.orders;
 
-        List<Order> orders = queryFactory
+        List<Orders> orders = queryFactory
                 .selectFrom(order)
                 .where(
                         order.product.id.eq(productId),
@@ -84,8 +84,8 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     }
 
     @Override
-    public Optional<Order> findByMemberIdAndProductId(Long memberId, Long productId) {
-        QOrder order = QOrder.order;
+    public Optional<Orders> findByMemberIdAndProductId(Long memberId, Long productId) {
+        QOrders order = QOrders.orders;
 
         return Optional.ofNullable(
                 queryFactory
@@ -100,8 +100,8 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     }
 
     @Override
-    public Optional<Order> findTopActiveByProductId(Long productId) {
-        QOrder order = QOrder.order;
+    public Optional<Orders> findTopActiveByProductId(Long productId) {
+        QOrders order = QOrders.orders;
 
         return Optional.ofNullable(
                 queryFactory

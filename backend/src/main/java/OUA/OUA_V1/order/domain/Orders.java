@@ -16,12 +16,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
-@Table(name = "orders")
-public class Order extends BaseEntity implements SecureResource {
+public class Orders extends BaseEntity implements SecureResource {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
+    @Column(name = "orders_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -42,7 +41,7 @@ public class Order extends BaseEntity implements SecureResource {
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
-    public Order(Member member, Product product, int orderPrice) {
+    public Orders(Member member, Product product, int orderPrice) {
         this.member = member;
         this.product = product;
         this.orderPrice = orderPrice;

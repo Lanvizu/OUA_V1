@@ -5,9 +5,9 @@ import OUA.OUA_V1.global.RedisLockTemplate;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.service.MemberService;
 import OUA.OUA_V1.order.controller.request.OrderRequest;
-import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.order.exception.badRequest.OrderOnOwnProductException;
-import OUA.OUA_V1.order.service.OrderService;
+import OUA.OUA_V1.order.service.OrdersService;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.domain.ProductStatus;
 import OUA.OUA_V1.product.exception.badRequest.ProductClosedException;
@@ -24,7 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OrderFacade {
 
-    private final OrderService orderService;
+    private final OrdersService ordersService;
     private final MemberService memberService;
     private final ProductService productService;
     private final RedisLockTemplate lockTemplate;
@@ -40,9 +40,9 @@ public class OrderFacade {
                     validateOrderPrice(product, request.orderPrice());
 
                     Member member = memberService.findById(memberId);
-                    Order order = orderService.createOrder(member, product, request.orderPrice());
-                    product.updateHighestOrder(order.getId(), order.getOrderPrice());
-                    return order.getId();
+                    Orders orders = ordersService.createOrder(member, product, request.orderPrice());
+                    product.updateHighestOrder(orders.getId(), orders.getOrderPrice());
+                    return orders.getId();
                 }
         );
     }
@@ -55,12 +55,13 @@ public class OrderFacade {
                     Product product = productService.findById(productId);
                     validateOwnProduct(memberId, product);
                     validateProductIsActive(product);
+                    // 주문이 존재할 경우 이전 주문 취소 추가.
 
                     Member member = memberService.findById(memberId);
-                    Order order = orderService.buyNowOrder(member, product);
-                    product.updateHighestOrder(order.getId(), order.getOrderPrice());
+                    Orders orders = ordersService.buyNowOrder(member, product);
+                    product.updateHighestOrder(orders.getId(), orders.getOrderPrice());
                     product.soldAuction();
-                    return order.getId();
+                    return orders.getId();
                 }
         );
     }
@@ -72,10 +73,10 @@ public class OrderFacade {
             productId,
             ()->{
                 Product product = productService.findById(productId);
-                Order order = orderService.findById(orderId);
-                orderService.cancelOrder(order);
+                Orders orders = ordersService.findById(orderId);
+                ordersService.cancelOrder(orders);
                 if (product.isHighestOrder(orderId)) {
-                    Optional<Order> highestOrder = orderService.findHighestOrder(product.getId());
+                    Optional<Orders> highestOrder = ordersService.findHighestOrder(product.getId());
                     highestOrder.ifPresentOrElse(
                             h -> product.updateHighestOrder(h.getId(), h.getOrderPrice()),
                             product::resetHighestOrder
@@ -91,13 +92,13 @@ public class OrderFacade {
                 productId,
                 () -> {
                     Product product = productService.findById(productId);
-                    Order order = orderService.findById(orderId);
+                    Orders orders = ordersService.findById(orderId);
 
                     validateProductIsActive(product);
                     validateOrderPrice(product, request.orderPrice());
 
-                    order.updateOrderPrice(request.orderPrice());
-                    product.updateHighestOrder(order.getId(), order.getOrderPrice());
+                    orders.updateOrderPrice(request.orderPrice());
+                    product.updateHighestOrder(orders.getId(), orders.getOrderPrice());
                 }
         );
     }
