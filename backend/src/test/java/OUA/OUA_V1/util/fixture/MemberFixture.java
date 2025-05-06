@@ -27,4 +27,10 @@ public class MemberFixture {
                 "$2a$10$RKBwn5Sa7EO0lYaZqU1zSupNbPJ5/HOKcI7gNb9c2q.TiydBHUBQK",
                 "01011111111"); // password 원문: newPassword214!
     }
+
+    public static Member createTestUser(String email) {
+        return new Member(email, "TEST_USER", "TEST_NICKNAME",
+                "$2a$10$RKBwn5Sa7EO0lYaZqU1zSupNbPJ5/HOKcI7gNb9c2q.TiydBHUBQK",
+                "01033333333"); // password 원문: newPassword214!
+    }
 }

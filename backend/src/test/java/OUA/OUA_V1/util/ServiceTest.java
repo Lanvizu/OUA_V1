@@ -2,9 +2,7 @@ package OUA.OUA_V1.util;
 
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.repository.MemberRepository;
-import OUA.OUA_V1.util.fixture.LocalDateFixture;
-import OUA.OUA_V1.util.fixture.MemberFixture;
-import org.junit.jupiter.api.BeforeEach;
+import OUA.OUA_V1.util.fixture.LocalDateFixture;import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;

@@ -7,9 +7,9 @@ import OUA.OUA_V1.order.controller.request.OrderRequest;
 import OUA.OUA_V1.order.controller.response.MyOrdersResponse;
 import OUA.OUA_V1.order.controller.response.OrdersResponse;
 import OUA.OUA_V1.order.controller.response.CountAndMyOrderResponse;
-import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.order.facade.OrderFacade;
-import OUA.OUA_V1.order.service.OrderService;
+import OUA.OUA_V1.order.service.OrdersService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderService orderService;
+    private final OrdersService ordersService;
     private final OrderFacade orderFacade;
 
     @PostMapping("/product/{productId}/orders")
@@ -53,7 +53,7 @@ public class OrderController {
             @PathVariable Long productId,
             @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<OrdersResponse> productOrders = orderService.getProductOrders(productId, pageable);
+        Page<OrdersResponse> productOrders = ordersService.getProductOrders(productId, pageable);
         return ResponseEntity.ok(new PagedModel<>(productOrders));
     }
 
@@ -63,8 +63,8 @@ public class OrderController {
             @PathVariable Long productId,
             @LoginMember Long memberId
     ) {
-        long productOrdersCount =  orderService.getCountByProductId(productId);
-        OrdersResponse myOrderForProduct = orderService.getMyOrderForProduct(memberId, productId);
+        long productOrdersCount =  ordersService.getCountByProductId(productId);
+        OrdersResponse myOrderForProduct = ordersService.getMyOrderForProduct(memberId, productId);
         return ResponseEntity.ok(new CountAndMyOrderResponse(myOrderForProduct, productOrdersCount));
     }
 
@@ -73,11 +73,11 @@ public class OrderController {
             @LoginMember Long memberId,
             @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<MyOrdersResponse> myOrders = orderService.getMyOrders(memberId, pageable);
+        Page<MyOrdersResponse> myOrders = ordersService.getMyOrders(memberId, pageable);
         return ResponseEntity.ok(new PagedModel<>(myOrders));
     }
 
-    @RequireAuthCheck(targetId = "orderId", targetDomain = Order.class)
+    @RequireAuthCheck(targetId = "orderId", targetDomain = Orders.class)
     @PostMapping("/product/{productId}/orders/{orderId}/cancel")
     public ResponseEntity<Void> cancelOrder(
             @PathVariable("productId") Long productId,
@@ -88,7 +88,7 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireAuthCheck(targetId = "orderId", targetDomain = Order.class)
+    @RequireAuthCheck(targetId = "orderId", targetDomain = Orders.class)
     @PostMapping("/product/{productId}/orders/{orderId}/update")
     public ResponseEntity<Void> updateOrder(
             @PathVariable("productId") Long productId,

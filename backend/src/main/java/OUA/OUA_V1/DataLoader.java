@@ -2,7 +2,7 @@ package OUA.OUA_V1;
 
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.repository.MemberRepository;
-import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.order.repository.OrderRepository;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.domain.ProductCategory;
@@ -118,33 +118,33 @@ public class DataLoader implements ApplicationRunner {
         productRepository.save(product4);
         productRepository.save(product5);
 
-        Order order = new Order(member3, product, 100000);
-        Order order2 = new Order(member, product, 110000);
-        Order order3 = new Order(member2, product2, 90000);
-        Order order4 = new Order(member6, product2, 100000);
-        Order order5 = new Order(member, product3, 11000);
-        Order order6 = new Order(member2, product3, 12000);
-        Order order7 = new Order(member8, product4, 1510000);
-        Order order8 = new Order(member9, product4, 1600000);
-        Order order9 = new Order(member5, product5, 251000);
-        Order order10 = new Order(member7, product5, 252000);
+        Orders orders = new Orders(member3, product, 100000);
+        Orders orders2 = new Orders(member, product, 110000);
+        Orders orders3 = new Orders(member2, product2, 90000);
+        Orders orders4 = new Orders(member6, product2, 100000);
+        Orders orders5 = new Orders(member, product3, 11000);
+        Orders orders6 = new Orders(member2, product3, 12000);
+        Orders orders7 = new Orders(member8, product4, 1510000);
+        Orders orders8 = new Orders(member9, product4, 1600000);
+        Orders orders9 = new Orders(member5, product5, 251000);
+        Orders orders10 = new Orders(member7, product5, 252000);
 
-        orderRepository.save(order);
-        orderRepository.save(order2);
-        orderRepository.save(order3);
-        orderRepository.save(order4);
-        orderRepository.save(order5);
-        orderRepository.save(order6);
-        orderRepository.save(order7);
-        orderRepository.save(order8);
-        orderRepository.save(order9);
-        orderRepository.save(order10);
+        orderRepository.save(orders);
+        orderRepository.save(orders2);
+        orderRepository.save(orders3);
+        orderRepository.save(orders4);
+        orderRepository.save(orders5);
+        orderRepository.save(orders6);
+        orderRepository.save(orders7);
+        orderRepository.save(orders8);
+        orderRepository.save(orders9);
+        orderRepository.save(orders10);
 
-        product.updateHighestOrder(order2.getId(), order2.getOrderPrice());
-        product2.updateHighestOrder(order4.getId(), order4.getOrderPrice());
-        product3.updateHighestOrder(order6.getId(), order6.getOrderPrice());
-        product4.updateHighestOrder(order8.getId(), order8.getOrderPrice());
-        product5.updateHighestOrder(order10.getId(), order10.getOrderPrice());
+        product.updateHighestOrder(orders2.getId(), orders2.getOrderPrice());
+        product2.updateHighestOrder(orders4.getId(), orders4.getOrderPrice());
+        product3.updateHighestOrder(orders6.getId(), orders6.getOrderPrice());
+        product4.updateHighestOrder(orders8.getId(), orders8.getOrderPrice());
+        product5.updateHighestOrder(orders10.getId(), orders10.getOrderPrice());
 
     }
 }

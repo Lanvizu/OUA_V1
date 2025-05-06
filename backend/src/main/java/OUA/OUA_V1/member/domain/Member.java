@@ -2,7 +2,7 @@ package OUA.OUA_V1.member.domain;
 
 import OUA.OUA_V1.BaseEntity;
 import OUA.OUA_V1.member.exception.badRequest.MemberIllegalPhoneNumberException;
-import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.product.domain.Product;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,7 +45,7 @@ public class Member extends BaseEntity {
     private List<Product> products = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Order> orders = new ArrayList<>();
+    private List<Orders> orders = new ArrayList<>();
 
     public Member(String email, String name, String nickName, String password, String phone) {
         validatePhoneNumber(phone);

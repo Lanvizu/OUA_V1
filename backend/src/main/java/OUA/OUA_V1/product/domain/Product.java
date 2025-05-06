@@ -3,7 +3,7 @@ package OUA.OUA_V1.product.domain;
 import OUA.OUA_V1.BaseEntity;
 import OUA.OUA_V1.auth.util.SecureResource;
 import OUA.OUA_V1.member.domain.Member;
-import OUA.OUA_V1.order.domain.Order;
+import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.product.exception.badRequest.ProductIllegalNameException;
 import OUA.OUA_V1.product.exception.badRequest.ProductNameBlankException;
 import OUA.OUA_V1.product.exception.badRequest.ProductNameLengthException;
@@ -68,7 +68,7 @@ public class Product extends BaseEntity implements SecureResource {
     private List<String> imageUrls = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Order> orders = new ArrayList<>();
+    private List<Orders> orders = new ArrayList<>();
 
     //즐겨찾기 수 추후 추가
 
