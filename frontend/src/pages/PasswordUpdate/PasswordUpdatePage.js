@@ -203,7 +203,7 @@ const PasswordUpdatePage = () => {
               <img
                   src={showPassword ? IconEyePublic : IconEyePrivate}
                   alt={showPassword ? '비밀번호 표시' : '비밀번호 숨김'}
-                  className="password-icon"
+                  className="PU-password-icon"
               />
               </button>
             </div>
@@ -227,7 +227,7 @@ const PasswordUpdatePage = () => {
               <img
                   src={showConfirmPassword ? IconEyePublic : IconEyePrivate}
                   alt={showConfirmPassword ? '비밀번호 표시' : '비밀번호 숨김'}
-                  className="password-icon"
+                  className="PU-password-icon"
               />
               </button>
             </div>
