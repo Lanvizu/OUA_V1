@@ -533,10 +533,6 @@ input[type=number] {
     padding: 15px;
   }
   
-  .image-carousel {
-    height: 350px;
-  }
-  
   .product-details {
     padding: 15px;
   }
@@ -556,10 +552,6 @@ input[type=number] {
 @media only screen and (max-width: 480px) {
   .product-container {
     padding: 10px;
-  }
-  
-  .image-carousel {
-    height: 250px;
   }
   
   .product-details {
