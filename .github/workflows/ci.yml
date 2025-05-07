@@ -33,6 +33,10 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Grant gradlew permission
+        run: chmod +x gradlew
+        working-directory: ./backend
+
       - name: Build Spring with Gradle
         run: ./gradlew clean build -x test
         working-directory: ./backend
