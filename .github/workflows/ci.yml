@@ -17,14 +17,12 @@ jobs:
             -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
             -p 3306:3306 \
             mysql:latest
-          timeout 30 bash -c "until docker exec mysql mysqladmin --password=${{ secrets.MYSQL_ROOT_PASSWORD }} ping; do sleep 1; done"
 
-          - name: Start Redis
-            run: |
-              docker run -d --name redis \
-                -p 6379:6379 \
-                redis:latest
-              timeout 10 bash -c "until docker exec redis redis-cli ping; do sleep 1; done"
+      - name: Start Redis
+        run: |
+          docker run -d --name redis \
+            -p 6379:6379 \
+            redis:latest
 
       - name: Checkout code
         uses: actions/checkout@v4
