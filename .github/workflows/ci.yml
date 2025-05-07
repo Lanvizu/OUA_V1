@@ -8,25 +8,24 @@ on:
 
 jobs:
   build-and-test:
-    env:
-      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:latest
-        env:
-          MYSQL_DATABASE: oua_v1
-          MYSQL_ROOT_PASSWORD: ${{ env.MYSQL_ROOT_PASSWORD }}
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping -p${{ env.MYSQL_ROOT_PASSWORD }}" --health-interval=5s
-      redis:
-        image: redis:latest
-        ports:
-          - 6379:6379
-        options: --health-cmd="redis-cli ping" --health-interval=5s
-
     steps:
+      - name: Start MySQL
+        run: |
+          docker run -d --name mysql \
+            -e MYSQL_DATABASE=oua_v1 \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
+            -p 3306:3306 \
+            mysql:latest
+          timeout 30 bash -c "until docker exec mysql mysqladmin --password=${{ secrets.MYSQL_ROOT_PASSWORD }} ping; do sleep 1; done"
+
+          - name: Start Redis
+            run: |
+              docker run -d --name redis \
+                -p 6379:6379 \
+                redis:latest
+              timeout 10 bash -c "until docker exec redis redis-cli ping; do sleep 1; done"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
