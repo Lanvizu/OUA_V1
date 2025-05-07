@@ -39,8 +39,7 @@ spring:
 
   data:
     redis:
-#      host: localhost
-      host: redis
+      host: ${redis.host}
       port: 6379
 
   cloud:
