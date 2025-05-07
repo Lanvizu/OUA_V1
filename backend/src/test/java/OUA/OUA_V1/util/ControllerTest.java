@@ -1,5 +1,6 @@
 package OUA.OUA_V1.util;
 
+import OUA.OUA_V1.auth.facade.AuthFacade;
 import OUA.OUA_V1.auth.security.TokenProvider;
 import OUA.OUA_V1.global.service.RedisService;
 import OUA.OUA_V1.member.repository.MemberRepository;
@@ -41,6 +42,9 @@ public class ControllerTest {
 
     @MockBean
     protected TokenProvider tokenProvider;
+
+    @MockBean
+    protected AuthFacade authFacade;
 
     @BeforeEach
     void setup() {
