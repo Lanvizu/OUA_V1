@@ -8,16 +8,18 @@ on:
 
 jobs:
   build-and-test:
+    env:
+      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
     runs-on: ubuntu-latest
     services:
       mysql:
         image: mysql:latest
         env:
           MYSQL_DATABASE: oua_v1
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ env.MYSQL_ROOT_PASSWORD }}
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping -p${{ secrets.MYSQL_ROOT_PASSWORD }}" --health-interval=5s
+        options: --health-cmd="mysqladmin ping -p${{ env.MYSQL_ROOT_PASSWORD }}" --health-interval=5s
       redis:
         image: redis:latest
         ports:
@@ -45,7 +47,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-        working-directory: ./frontend
 
       - name: Cache Node modules
         uses: actions/cache@v3
