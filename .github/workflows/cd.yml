@@ -39,6 +39,7 @@ jobs:
             MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             REDIS_HOST=${{ secrets.REDIS_HOST }}
             GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
             GCP_BUCKET=${{ secrets.GCP_BUCKET }}
