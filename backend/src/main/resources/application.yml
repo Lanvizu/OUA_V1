@@ -109,7 +109,7 @@ spring:
   cloud:
     gcp:
       credentials:
-        location: file:${GCP_CREDENTIALS_LOCATION}
+        location: file:gcp-key.json
       project-id: ${GCP_PROJECT_ID}
       bucket: ${GCP_BUCKET}
 
