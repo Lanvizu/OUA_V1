@@ -22,20 +22,18 @@ jobs:
           MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }}
-          GCP_CREDENTIALS_JSON=${{ secrets.GCP_CREDENTIALS_JSON }}
           GCP_CREDENTIALS_LOCATION=${{secrets.GCP_CREDENTIALS_LOCATION}}
           GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
           GCP_BUCKET=${{ secrets.GCP_BUCKET }}
           EOF
           chmod 600 .env 
 
-      - name: Create GCP credentials JSON
-        working-directory: ./backend
-        env:
-          GCP_CREDENTIALS_LOCATION: ${{ secrets.GCP_CREDENTIALS_LOCATION }}
-        run: |
-          echo '${{ secrets.GCP_CREDENTIALS_JSON }}' | base64 -d > ${GCP_CREDENTIALS_LOCATION}
-          chmod 600 ${GCP_CREDENTIALS_LOCATION}
+      - name: Create GCP JSON
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: ${{secrets.GCP_CREDENTIALS_LOCATION}}
+          json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+          dir: "backend/src/main/resources"
 
       - name: Start MySQL
         run: |
