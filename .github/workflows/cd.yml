@@ -23,7 +23,6 @@ jobs:
           key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
           source: "docker-compose.prod.yml"
           target: "/home/ubuntu/"
-          strip_components: 1
 
       - name: Deploy to AWS
         uses: appleboy/ssh-action@master
