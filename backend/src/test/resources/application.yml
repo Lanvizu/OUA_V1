@@ -1,71 +1,72 @@
 spring:
   profiles:
-    active: test
     include: secret
 
 ---
-
-spring:
-  config:
-    activate:
-      on-profile: test
-
-  datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-        format_sql: true
-#    show-sql: true
-
-  flyway:
-    enabled: false
-
-  data:
-    redis:
-      port: 6379
-      host: ${redis.host}
-
-#  mail:
-#    host: smtp.gmail.com
-#    port: 587
-#    username: ${mail.username}
-#    password: ${mail.password}
+#
+#
+#spring:
+#  config:
+#    activate:
+#      on-profile: test
+#
+#  datasource:
+#    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+#    username: sa
+#    password:
+#    driver-class-name: org.h2.Driver
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: create-drop
 #    properties:
-#      mail:
-#        smtp:
-#          auth: true
-#          starttls:
-#            enable: true
-#          timeout: 5000
+#      hibernate:
+#        dialect: org.hibernate.dialect.H2Dialect
+#        format_sql: true
+#  #    show-sql: true
+#
+#  flyway:
+#    enabled: false
+#
+#  data:
+#    redis:
+#      port: 6379
+#      host: ${redis.host}
+#
+#  #  mail:
+#  #    host: smtp.gmail.com
+#  #    port: 587
+#  #    username: ${mail.username}
+#  #    password: ${mail.password}
+#  #    properties:
+#  #      mail:
+#  #        smtp:
+#  #          auth: true
+#  #          starttls:
+#  #            enable: true
+#  #          timeout: 5000
+#
+#  cloud:
+#    gcp:
+#      credentials:
+#        location: ${cloud.gcp.credentials.location}
+#      project-id: ${cloud.gcp.project-id}
+#      bucket: ${cloud.gcp.bucket}
+#
+#security:
+#  jwt:
+#    token:
+#      secret-key: test
+#      expire-length: 3600000
+#      algorithm: HS256
+#
+#logging:
+#  level:
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#
+#---
 
-  cloud:
-    gcp:
-      credentials:
-        location: ${cloud.gcp.credentials.location}
-      project-id: ${cloud.gcp.project-id}
-      bucket: ${cloud.gcp.bucket}
-
-security:
-  jwt:
-    token:
-      secret-key: test
-      expire-length: 3600000
-      algorithm: HS256
-
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
----
 spring:
   config:
     activate:
