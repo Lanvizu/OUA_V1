@@ -10,6 +10,33 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          cat <<EOF > .env
+          SPRING_DATASOURCE_URL=${{ secrets.MYSQL_URL }}
+          SPRING_DATASOURCE_USERNAME=${{ secrets.MYSQL_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }}
+          GCP_CREDENTIALS_JSON=${{ secrets.GCP_CREDENTIALS_JSON }}
+          GCP_CREDENTIALS_LOCATION=${{secrets.GCP_CREDENTIALS_LOCATION}}
+          GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          GCP_BUCKET=${{ secrets.GCP_BUCKET }}
+          EOF
+          chmod 600 .env 
+
+      - name: Create GCP credentials JSON
+        working-directory: ./backend
+        env:
+          GCP_CREDENTIALS_LOCATION: ${{ secrets.GCP_CREDENTIALS_LOCATION }}
+        run: |
+          echo '${{ secrets.GCP_CREDENTIALS_JSON }}' | base64 -d > ${GCP_CREDENTIALS_LOCATION}
+          chmod 600 ${GCP_CREDENTIALS_LOCATION}
+
       - name: Start MySQL
         run: |
           docker run -d --name mysql \
@@ -23,9 +50,6 @@ jobs:
           docker run -d --name redis \
             -p 6379:6379 \
             redis:latest
-
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -41,8 +65,9 @@ jobs:
         run: ./gradlew clean build -x test
         working-directory: ./backend
         env:
-          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
-          SPRING_DATA_REDIS_HOST: ${{ secrets.SPRING_DATA_REDIS_HOST }}
+          SPRING_PROFILES_ACTIVE: dev
+          SPRING_DATASOURCE_URL: ${{ secrets.MYSQL_URL }}
+          SPRING_DATA_REDIS_HOST: ${{ secrets.REDIS_HOST }}
 
       - name: Set up Node.js 18.x
         uses: actions/setup-node@v3
@@ -63,11 +88,14 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
-#      - name: Run Integration Tests
-#        run: |
-#          docker-compose -f docker-compose-ci.yml up -d
-#          ./gradlew test
-#        working-directory: ./backend
+      - name: Run Integration Tests
+        run: |
+          docker-compose -f docker-compose-ci.yml up -d
+          ./gradlew test
+        working-directory: ./backend
+        env:
+          SPRING_PROFILES_ACTIVE: dev
+          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -82,6 +110,8 @@ jobs:
           file: ./backend/Dockerfile
           tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
           push: ${{ github.event_name == 'push' }}
+          build-args: |
+            GCP_CREDENTIALS_LOCATION=${{ secrets.GCP_CREDENTIALS_LOCATION }}
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
