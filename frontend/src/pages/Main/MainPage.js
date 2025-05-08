@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './MainPage.css';
 import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
@@ -21,9 +21,12 @@ const Main = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const getQueryParam = (key, defaultValue) => searchParams.get(key) || defaultValue;
+  const getQueryParam = useCallback(
+    (key, defaultValue) => searchParams.get(key) || defaultValue,
+    [searchParams]
+  );
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -55,7 +58,7 @@ const Main = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams, getQueryParam]);
 
   const updateFilterParams = (params = {}) => {
     const updatedParams = new URLSearchParams({
@@ -70,7 +73,7 @@ const Main = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [searchParams]);
+  }, [fetchProducts, searchParams]);
 
   const handleProductClick = (productId) => navigate(`/product/${productId}`);
 

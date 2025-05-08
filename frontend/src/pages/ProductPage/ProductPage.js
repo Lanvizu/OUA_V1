@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import './ProductPage.css';
 import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
@@ -33,7 +33,7 @@ const ProductPage = () => {
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-  const calculateTimeLeft = () => {
+  const calculateTimeLeft = useCallback(() => {
     if (!product?.endDate) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
     const difference = new Date(product.endDate) - new Date();
@@ -47,7 +47,7 @@ const ProductPage = () => {
       minutes: Math.floor((difference / 1000 / 60) % 60),
       seconds: Math.floor((difference / 1000) % 60)
     };
-  };
+  }, [product?.endDate]);
 
   const formatTime = (time) => {
     const parts = [];
@@ -73,7 +73,7 @@ const ProductPage = () => {
     }, 1000);
   
     return () => clearInterval(timer);
-  }, [product?.endDate, !product?.status === 'ACTIVE']);
+  }, [calculateTimeLeft, product?.status]);
 
   const getStatusMessage = (status) => {
     switch(status) {
@@ -207,7 +207,7 @@ const ProductPage = () => {
     fetchProduct();
   }, [productId]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setOrdersError('');
     setGlobalLoading(true);
     setLoadingMessage('입찰 정보를 불러오는 중입니다...');
@@ -224,11 +224,11 @@ const ProductPage = () => {
     } finally {
       setGlobalLoading(false);
     }
-  };
+  }, [productId]);
 
   useEffect(() => {
     fetchOrders();
-  }, [productId]);
+  }, [fetchOrders, productId]); 
 
   useEffect(() => {
     if (myOrder) {

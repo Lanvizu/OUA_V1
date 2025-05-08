@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './MyOrdersPage.css';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
@@ -14,9 +14,12 @@ const MyOrdersPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const getQueryParam = (key, defaultValue) => searchParams.get(key) || defaultValue;
+  const getQueryParam = useCallback(
+    (key, defaultValue) => searchParams.get(key) || defaultValue,
+    [searchParams]
+  );
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -40,7 +43,7 @@ const MyOrdersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getQueryParam]);
 
   // 페이지네이션 변경
   const updatePage = (page) => {
@@ -53,7 +56,7 @@ const MyOrdersPage = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [searchParams]);
+  }, [searchParams, fetchOrders]);
 
   // 주문 상세(상품 상세)로 이동
   const handleProductClick = (productId) => navigate(`/product/${productId}`);
