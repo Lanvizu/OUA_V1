@@ -12,19 +12,29 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Deploy to AWS
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.AWS_EC2_IP }}
-        username: ubuntu
-        key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
-        script: |
-          cd /home/ubuntu
-          
-          cat <<EOF > .env.prod
+      - name: Copy docker-compose.prod.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AWS_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/home/ubuntu/"
+          strip_components: 1
+
+      - name: Deploy to AWS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu
+
+            cat <<EOF > .env.prod
             MYSQL_URL=${{ secrets.MYSQL_URL }}
             MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
             MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
@@ -33,11 +43,9 @@ jobs:
             REDIS_HOST=${{ secrets.REDIS_HOST }}
             GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
             GCP_BUCKET=${{ secrets.GCP_BUCKET }}
-          EOF
-          chmod 600 .env.prod
-          
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          
-          cd /OUA_V1
-          docker-compose -f docker-compose.prod.yml --env-file .env.prod pull
-          docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+            EOF
+            chmod 600 .env.prod
+
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            docker-compose -f docker-compose.prod.yml --env-file .env.prod pull
+            docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
