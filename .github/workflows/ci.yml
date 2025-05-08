@@ -16,16 +16,16 @@ jobs:
       - name: Create .env file
         run: |
           cat <<EOF > .env
-          SPRING_DATASOURCE_URL=${{ secrets.MYSQL_URL }}
-          SPRING_DATASOURCE_USERNAME=${{ secrets.MYSQL_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_URL=${{ secrets.MYSQL_URL }}
+          MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
+          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
           MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-          SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
           GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
           GCP_BUCKET=${{ secrets.GCP_BUCKET }}
           EOF
-          chmod 600 .env 
+          chmod 600 .env
 
       - name: Create GCP JSON
         uses: jsdaniell/create-json@1.1.2
@@ -77,8 +77,8 @@ jobs:
         working-directory: ./backend
         env:
           SPRING_PROFILES_ACTIVE: dev
-          SPRING_DATASOURCE_URL: ${{ secrets.MYSQL_URL }}
-          SPRING_DATA_REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
 
       - name: Set up Node.js 18.x
         uses: actions/setup-node@v3
