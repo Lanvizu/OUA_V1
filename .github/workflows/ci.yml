@@ -22,7 +22,6 @@ jobs:
           MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }}
-          GCP_CREDENTIALS_LOCATION=${{secrets.GCP_CREDENTIALS_LOCATION}}
           GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
           GCP_BUCKET=${{ secrets.GCP_BUCKET }}
           EOF
@@ -107,8 +106,6 @@ jobs:
           file: ./backend/Dockerfile
           tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
           push: ${{ github.event_name == 'push' }}
-          build-args: |
-            GCP_CREDENTIALS_LOCATION=${{ secrets.GCP_CREDENTIALS_LOCATION }}
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
