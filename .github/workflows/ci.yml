@@ -18,7 +18,7 @@ jobs:
           cat <<EOF > .env
           MYSQL_URL=${{ secrets.MYSQL_URL }}
           MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
-          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
           MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           REDIS_HOST=${{ secrets.REDIS_HOST }}
@@ -38,7 +38,7 @@ jobs:
         run: |
           docker run -d --name mysql \
             -e MYSQL_DATABASE=oua_v1 \
-            -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
             -p 3306:3306 \
             mysql:latest
 
