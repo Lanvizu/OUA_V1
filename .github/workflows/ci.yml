@@ -100,12 +100,10 @@ jobs:
         working-directory: ./frontend
 
       - name: Run Integration Tests
-        run: |
-          ./gradlew test
+        run: ./gradlew test
         working-directory: ./backend
         env:
-          SPRING_PROFILES_ACTIVE: dev-test
-#          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/oua_v1
+          SPRING_PROFILES_ACTIVE: test
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
