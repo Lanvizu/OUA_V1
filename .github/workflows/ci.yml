@@ -31,7 +31,7 @@ jobs:
       - name: Create GCP JSON
         uses: jsdaniell/create-json@1.1.2
         with:
-          name: ${{secrets.GCP_CREDENTIALS_LOCATION}}
+          name: "gcp-key.json"
           json: ${{ secrets.GCP_CREDENTIALS_JSON }}
           dir: "backend/src/main/resources"
 
@@ -92,7 +92,7 @@ jobs:
         working-directory: ./backend
         env:
           SPRING_PROFILES_ACTIVE: dev
-          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_URL: ${{ secrets.MYSQL_URL }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
