@@ -1,7 +1,6 @@
 FROM openjdk:21-jdk-slim
 ARG JAR_FILE=build/libs/*.jar
 COPY ${JAR_FILE} app.jar
-# 포트 설정
+COPY *.json .
 EXPOSE 8080
-# 커맨드 실행
 ENTRYPOINT ["java","-jar","/app.jar"]

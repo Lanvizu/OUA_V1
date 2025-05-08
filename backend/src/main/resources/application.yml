@@ -66,3 +66,67 @@ cookie:
 #  same-site: none
   same-site: Lax
   max-age: 7200 #2시간
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_batch_fetch_size: 1000
+        #        show_sql: true
+        format_sql: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          timeout: 5000
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+
+  cloud:
+    gcp:
+      credentials:
+        location: file:${GCP_CREDENTIALS_LOCATION}
+      project-id: ${GCP_PROJECT_ID}
+      bucket: ${GCP_BUCKET}
+
+security:
+  jwt:
+    token:
+      secret-key: test
+      expire-length: 3600000
+      algorithm: HS256
+
+# local 환경
+cookie:
+  access-token-key: token
+  http-only: false
+  secure: false
+  domain: localhost
+  path: /
+  #  same-site: none
+  same-site: Lax
+  max-age: 7200 #2시간
