@@ -32,6 +32,10 @@ jobs:
           key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu
+            
+            docker-compose -f docker-compose.prod.yml down --volumes --remove-orphans || true
+            docker system prune -af || true
+            docker volume prune -f || true
 
             cat <<EOF > .env.prod
             MYSQL_URL=${{ secrets.MYSQL_URL }}
