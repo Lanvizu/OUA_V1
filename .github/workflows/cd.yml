@@ -33,7 +33,7 @@ jobs:
           script: |
             cd /home/ubuntu
             
-            cat <<EOF > .env.prod
+            cat <<EOF > .env
             MYSQL_URL=${{ secrets.MYSQL_URL }}
             MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
@@ -45,12 +45,12 @@ jobs:
             GCP_BUCKET=${{ secrets.GCP_BUCKET }}
             EOF
             
-            chmod 600 .env.prod
+            chmod 600 .env
             
             docker-compose -f docker-compose.prod.yml down --volumes --remove-orphans || true
             docker system prune -af || true
             docker volume prune -f || true
             
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            docker-compose -f docker-compose.prod.yml --env-file .env.prod pull
-            docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+            docker-compose -f docker-compose.prod.yml --env-file .env pull
+            docker-compose -f docker-compose.prod.yml up -d
