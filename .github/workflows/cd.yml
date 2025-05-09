@@ -32,6 +32,7 @@ jobs:
           key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
           source: "nginx"
           target: "/home/ubuntu/"
+          overwrite: true
 
       - name: Deploy to AWS
         uses: appleboy/ssh-action@master
