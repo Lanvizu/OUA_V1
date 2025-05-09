@@ -39,6 +39,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       MYSQL_URL: jdbc:mysql://mysql:3306/oua_v1
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       REDIS_HOST: redis
     depends_on:
       mysql:
