@@ -24,15 +24,6 @@ jobs:
           source: "docker-compose.prod.yml"
           target: "/home/ubuntu/"
 
-      - name: Copy nginx config to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.AWS_EC2_IP }}
-          username: ubuntu
-          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
-          source: "frontend/default.conf"
-          target: "/home/ubuntu/frontend/"
-
       - name: Deploy to AWS
         uses: appleboy/ssh-action@master
         with:
