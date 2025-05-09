@@ -50,6 +50,8 @@ services:
 
   frontend:
     image: ${DOCKER_USERNAME}/frontend:latest
+    ports:
+      - "3000:3000"
     networks:
       - app-network
 
@@ -64,13 +66,11 @@ services:
     networks:
       - app-network
     volumes:
-      - ./frontend/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
 
 networks:
   app-network:
     driver: bridge
 
 volumes:
-  mysql_data:
-  redis_data:
   frontend_build:
