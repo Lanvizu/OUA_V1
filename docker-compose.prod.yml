@@ -73,4 +73,6 @@ networks:
     driver: bridge
 
 volumes:
+  mysql_data:
+  redis_data:
   frontend_build:
