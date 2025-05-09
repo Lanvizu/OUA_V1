@@ -31,6 +31,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
           script: |
+            sudo chown -R ubuntu:ubuntu /home/ubuntu/nginx || true
+            sudo chmod -R 755 /home/ubuntu/nginx || true
             rm -rf /home/ubuntu/nginx/default.conf
 
       - name: Copy nginx config to EC2
