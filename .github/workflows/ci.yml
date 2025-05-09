@@ -1,3 +1,132 @@
+#name: CI Pipeline
+#
+#on:
+#  push:
+#    branches: [ main ]
+#  pull_request:
+#    branches: [ main ]
+#
+#jobs:
+#  build-and-test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Create .env file
+#        run: |
+#          cat <<EOF > .env
+#          MYSQL_URL=${{ secrets.MYSQL_URL }}
+#          MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
+#          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+#          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+#          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+#          REDIS_HOST=${{ secrets.REDIS_HOST }}
+#          GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+#          GCP_BUCKET=${{ secrets.GCP_BUCKET }}
+#          EOF
+#          chmod 600 .env
+#
+#      - name: Create GCP JSON
+#        uses: jsdaniell/create-json@1.1.2
+#        with:
+#          name: "gcp-key.json"
+#          json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+#          dir: "backend/src/main/resources"
+#
+#      - name: Start MySQL
+#        run: |
+#          docker run -d --name mysql \
+#            -e MYSQL_DATABASE=oua_v1 \
+#            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+#            -p 3306:3306 \
+#            mysql:latest
+#
+#      - name: Start Redis
+#        run: |
+#          docker run -d --name redis \
+#            -p 6379:6379 \
+#            redis:latest
+#
+#      - name: Wait for MySQL
+#        run: |
+#          for i in {1..30}; do
+#            if docker exec mysql mysqladmin ping -h 127.0.0.1 -u root -p"${{ secrets.MYSQL_PASSWORD }}" --silent; then
+#              exit 0
+#            fi
+#            sleep 2
+#          done
+#          exit 1
+#
+#      - name: Wait for Redis
+#        run: |
+#          until docker exec redis redis-cli ping; do sleep 1; done
+#
+#      - name: Set up JDK 21
+#        uses: actions/setup-java@v3
+#        with:
+#          distribution: 'temurin'
+#          java-version: '21'
+#
+#      - name: Grant gradlew permission
+#        run: chmod +x gradlew
+#        working-directory: ./backend
+#
+#      - name: Build Spring with Gradle
+#        run: ./gradlew clean build -x test
+#        working-directory: ./backend
+#        env:
+#          SPRING_PROFILES_ACTIVE: dev
+#          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+#          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+#
+#      - name: Set up Node.js 18.x
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: 18.x
+#
+#      - name: Cache Node modules
+#        uses: actions/cache@v3
+#        with:
+#          path: ./frontend/node_modules
+#          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+#
+#      - name: Install React dependencies
+#        run: npm install
+#        working-directory: ./frontend
+#
+#      - name: Build React app
+#        run: npm run build
+#        working-directory: ./frontend
+#
+#      - name: Run Integration Tests
+#        run: ./gradlew test
+#        working-directory: ./backend
+#        env:
+#          SPRING_PROFILES_ACTIVE: test
+#
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v2
+#        with:
+#          username: ${{ secrets.DOCKER_USERNAME }}
+#          password: ${{ secrets.DOCKER_PASSWORD }}
+#
+#      - name: Build and Push Backend Image
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: ./backend
+#          file: ./backend/Dockerfile
+#          tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
+#          push: ${{ github.event_name == 'push' }}
+#
+#      - name: Build and Push Frontend Image
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: ./frontend
+#          file: ./frontend/Dockerfile
+#          tags: ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+#          push: ${{ github.event_name == 'push' }}
+
 name: CI Pipeline
 
 on:
@@ -7,8 +136,34 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  setup:
+    name: Setup & Dependencies
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_DATABASE: oua_v1
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u root -p${{ secrets.MYSQL_PASSWORD }}"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,39 +189,46 @@ jobs:
           json: ${{ secrets.GCP_CREDENTIALS_JSON }}
           dir: "backend/src/main/resources"
 
-      - name: Start MySQL
-        run: |
-          docker run -d --name mysql \
-            -e MYSQL_DATABASE=oua_v1 \
-            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-            -p 3306:3306 \
-            mysql:latest
-
-      - name: Start Redis
-        run: |
-          docker run -d --name redis \
-            -p 6379:6379 \
-            redis:latest
-
-      - name: Wait for MySQL
-        run: |
-          for i in {1..30}; do
-            if docker exec mysql mysqladmin ping -h 127.0.0.1 -u root -p"${{ secrets.MYSQL_PASSWORD }}" --silent; then
-              exit 0
-            fi
-            sleep 2
-          done
-          exit 1
-
-      - name: Wait for Redis
-        run: |
-          until docker exec redis redis-cli ping; do sleep 1; done
-
-      - name: Set up JDK 21
+      - name: Setup JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '21'
+
+      - name: Setup Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Setup Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ./frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+  backend-build:
+    name: Build & Test Backend
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Restore .env and GCP JSON
+        run: |
+          cp ../.env .env
+          cp ../backend/src/main/resources/gcp-key.json backend/src/main/resources/gcp-key.json
 
       - name: Grant gradlew permission
         run: chmod +x gradlew
@@ -80,16 +242,19 @@ jobs:
           MYSQL_URL: ${{ secrets.MYSQL_URL }}
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
 
-      - name: Set up Node.js 18.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
+      - name: Run Integration Tests
+        run: ./gradlew test
+        working-directory: ./backend
+        env:
+          SPRING_PROFILES_ACTIVE: test
 
-      - name: Cache Node modules
-        uses: actions/cache@v3
-        with:
-          path: ./frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+  frontend-build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install React dependencies
         run: npm install
@@ -99,11 +264,20 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
-      - name: Run Integration Tests
-        run: ./gradlew test
-        working-directory: ./backend
-        env:
-          SPRING_PROFILES_ACTIVE: test
+  docker-publish:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [backend-build, frontend-build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker Layer Caching
+        uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -118,6 +292,8 @@ jobs:
           file: ./backend/Dockerfile
           tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
           push: ${{ github.event_name == 'push' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
@@ -126,3 +302,5 @@ jobs:
           file: ./frontend/Dockerfile
           tags: ${{ secrets.DOCKER_USERNAME }}/frontend:latest
           push: ${{ github.event_name == 'push' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
