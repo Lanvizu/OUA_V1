@@ -168,39 +168,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create .env file
-        run: |
-          cat <<EOF > .env
-          MYSQL_URL=${{ secrets.MYSQL_URL }}
-          MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
-          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-          REDIS_HOST=${{ secrets.REDIS_HOST }}
-          GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
-          GCP_BUCKET=${{ secrets.GCP_BUCKET }}
-          EOF
-          chmod 600 .env
-
-      - name: Upload .env
-        uses: actions/upload-artifact@v4
-        with:
-          name: env-file
-          path: .env
-
-      - name: Create GCP JSON
-        uses: jsdaniell/create-json@1.1.2
-        with:
-          name: "gcp-key.json"
-          json: ${{ secrets.GCP_CREDENTIALS_JSON }}
-          dir: "backend/src/main/resources"
-
-      - name: Upload GCP JSON
-        uses: actions/upload-artifact@v4
-        with:
-          name: gcp-key
-          path: backend/src/main/resources/gcp-key.json
-
       - name: Setup JDK 21
         uses: actions/setup-java@v3
         with:
@@ -237,16 +204,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download .env
-        uses: actions/download-artifact@v4
-        with:
-          name: env-file
+      - name: Create .env file
+        run: |
+          cat <<EOF > .env
+          MYSQL_URL=${{ secrets.MYSQL_URL }}
+          MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
+          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          GCP_BUCKET=${{ secrets.GCP_BUCKET }}
+          EOF
+          chmod 600 .env
 
-      - name: Download GCP JSON
-        uses: actions/download-artifact@v4
+      - name: Create GCP JSON
+        uses: jsdaniell/create-json@1.1.2
         with:
-          name: gcp-key
-          path: backend/src/main/resources
+          name: "gcp-key.json"
+          json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+          dir: "backend/src/main/resources"
 
       - name: Grant gradlew permission
         run: chmod +x gradlew
