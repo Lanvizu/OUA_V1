@@ -182,6 +182,12 @@ jobs:
           EOF
           chmod 600 .env
 
+      - name: Upload .env
+        uses: actions/upload-artifact@v4
+        with:
+          name: env-file
+          path: .env
+
       - name: Create GCP JSON
         uses: jsdaniell/create-json@1.1.2
         with:
@@ -189,15 +195,11 @@ jobs:
           json: ${{ secrets.GCP_CREDENTIALS_JSON }}
           dir: "backend/src/main/resources"
 
-#      - name: Wait for MySQL
-#        run: |
-#          for i in {1..30}; do
-#            if mysqladmin ping -h 127.0.0.1 -u root -p"${{ secrets.MYSQL_PASSWORD }}" --silent; then
-#              exit 0
-#            fi
-#            sleep 2
-#          done
-#          exit 1
+      - name: Upload GCP JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: gcp-key
+          path: backend/src/main/resources/gcp-key.json
 
       - name: Setup JDK 21
         uses: actions/setup-java@v3
@@ -235,10 +237,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Restore .env and GCP JSON
-        run: |
-          cp ../.env .env
-          cp ../backend/src/main/resources/gcp-key.json backend/src/main/resources/gcp-key.json
+      - name: Download .env
+        uses: actions/download-artifact@v4
+        with:
+          name: env-file
+
+      - name: Download GCP JSON
+        uses: actions/download-artifact@v4
+        with:
+          name: gcp-key
+          path: backend/src/main/resources
 
       - name: Grant gradlew permission
         run: chmod +x gradlew
