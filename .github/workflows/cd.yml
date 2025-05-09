@@ -24,6 +24,15 @@ jobs:
           source: "docker-compose.prod.yml"
           target: "/home/ubuntu/"
 
+      - name: Remove old nginx config on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          script: |
+            rm -rf /home/ubuntu/nginx/default.conf
+
       - name: Copy nginx config to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -32,7 +41,6 @@ jobs:
           key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
           source: "nginx"
           target: "/home/ubuntu/"
-          overwrite: true
 
       - name: Deploy to AWS
         uses: appleboy/ssh-action@master
