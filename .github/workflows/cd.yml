@@ -54,7 +54,7 @@ jobs:
             cd /home/ubuntu
             
             cat <<EOF > .env
-            MYSQL_URL=${{ secrets.MYSQL_URL }}
+            SPRING_DATASOURCE_URL=${{ secrets.MYSQL_URL }}
             MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
