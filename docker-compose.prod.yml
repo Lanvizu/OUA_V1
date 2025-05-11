@@ -38,12 +38,16 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: dev, secret
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/oua_v1
-      username: ${MYSQL_USERNAME}
-      SPRING_DATASOURCE_USERNAME: root
+      SPRING_PROFILES_ACTIVE: dev
+#      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/oua_v1
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      MYSQL_USERNAME: ${MYSQL_USERNAME}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      REDIS_HOST: redis
+      REDIS_HOST: ${REDIS_HOST}
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID}
+      GCP_BUCKET: ${GCP_BUCKET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
     depends_on:
       mysql:
         condition: service_healthy
