@@ -17,7 +17,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         default_batch_fetch_size: 1000
@@ -75,8 +75,8 @@ spring:
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_ROOT_PASSWORD}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

@@ -5,14 +5,14 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       MYSQL_DATABASE: oua_v1
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysql", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1;"]
+      test: ["CMD", "mysql", "-u", "root", "-p${SPRING_DATASOURCE_PASSWORD}", "-e", "SELECT 1;"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -40,8 +40,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      MYSQL_USERNAME: ${MYSQL_USERNAME}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       REDIS_HOST: ${REDIS_HOST}
       GCP_PROJECT_ID: ${GCP_PROJECT_ID}
       GCP_BUCKET: ${GCP_BUCKET}
