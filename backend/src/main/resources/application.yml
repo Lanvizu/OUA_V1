@@ -187,7 +187,8 @@ security:
 cookie:
   access-token-key: token
   http-only: true
-  secure: false
+  secure: true
+  domain: oua-v1.duckdns.org
   path: /
   same-site: Lax
   max-age: 7200 #2시간
