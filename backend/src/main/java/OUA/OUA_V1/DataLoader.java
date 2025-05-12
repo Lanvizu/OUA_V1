@@ -18,7 +18,6 @@ import java.util.List;
 
 @Transactional
 @Component
-@Profile("dev")
 @RequiredArgsConstructor
 public class DataLoader implements ApplicationRunner {
 
