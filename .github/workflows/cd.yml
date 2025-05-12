@@ -54,3 +54,4 @@ jobs:
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker-compose -f docker-compose.prod.yml --env-file .env pull
             docker-compose -f docker-compose.prod.yml up -d
+            docker restart ubuntu_frontend_1
