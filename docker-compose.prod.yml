@@ -41,7 +41,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
     depends_on:
       mysql:
         condition: service_healthy
@@ -53,7 +53,7 @@ services:
   frontend:
     image: ${DOCKER_USERNAME}/frontend:latest
     ports:
-      - "3000:3000"
+      - "3000:80"
     networks:
       - app-network
 
