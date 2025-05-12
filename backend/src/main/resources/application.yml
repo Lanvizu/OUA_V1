@@ -184,11 +184,10 @@ security:
       expire-length: 3600000
       algorithm: HS256
 
-# local 환경
 cookie:
   access-token-key: token
   http-only: true
   secure: false
   path: /
-  same-site: None
+  same-site: Lax
   max-age: 7200 #2시간
