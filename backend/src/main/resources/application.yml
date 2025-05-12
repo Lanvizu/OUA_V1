@@ -187,10 +187,8 @@ security:
 # local 환경
 cookie:
   access-token-key: token
-  http-only: false
+  http-only: true
   secure: false
-  domain: localhost
   path: /
-  #  same-site: none
-  same-site: Lax
+  same-site: None
   max-age: 7200 #2시간
