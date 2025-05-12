@@ -5,6 +5,7 @@ services:
   mysql:
     image: mysql:8.0
     environment:
+      MYSQL_ROOT_HOST: ${SPRING_DATASOURCE_USERNAME}
       MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       MYSQL_DATABASE: oua_v1
     volumes:
@@ -37,16 +38,10 @@ services:
     restart: always
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      GCP_PROJECT_ID: ${GCP_PROJECT_ID}
-      GCP_BUCKET: ${GCP_BUCKET}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
     depends_on:
       mysql:
         condition: service_healthy
