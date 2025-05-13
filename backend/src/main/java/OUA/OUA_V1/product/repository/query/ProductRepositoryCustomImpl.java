@@ -53,6 +53,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
     ) {
         BooleanExpression predicate = Expressions.asBoolean(true).isTrue();
 
+        predicate = predicate.and(product.deleted.isFalse());
         predicate = predicate.and(containsKeyword(product, keyword));
         predicate = predicate.and(isStatusEqual(product, onSale));
         predicate = predicate.and(isCategoryEqual(product, categoryId));
