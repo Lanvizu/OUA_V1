@@ -27,7 +27,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:3000",
                         "https://localhost:3000",
-                        "http://frontend:3000"
+                        "http://frontend:3000",
+                        "https://oua-v1.duckdns.org"
                 )
                 .allowedMethods("*")
                 .allowedHeaders("*")
