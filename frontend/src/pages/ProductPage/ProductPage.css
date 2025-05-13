@@ -34,7 +34,8 @@
   .product-description {
     line-height: 1.6;
     color: #666;
-    margin-bottom: 30px;
+    overflow-wrap: break-word;
+  word-break: break-word;
   }
   
   .price-section {
@@ -65,13 +66,13 @@
   
   .info-box {
     border-top: 2px solid #eee;
-    margin-top: 20px;
+    margin-top: 12px;
   }
   
   .info-item {
     display: flex;
     justify-content: space-between;
-    margin: 15px 0px;
+    margin: 12px 0px 6px;
     align-items: center;
   }
 
@@ -272,13 +273,17 @@
   border-collapse: collapse;
   margin-top: 12px;
 }
+.orders-table th:first-child,
+.orders-table td:first-child {
+  width: 30%;
+}
 .orders-table th, .orders-table td {
   border: 1px solid #eee;
   padding: 8px;
   text-align: center;
 }
 .my-order-box {
-  margin-bottom: 8px;
+  min-height: 50px;
   background: #f5f7fa;
   padding: 12px 10px;
   border-radius: 4px;
@@ -286,9 +291,9 @@
   color: #2d6cdf;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .cancel-button {
-  margin-left: 12px;
   padding: 4px 10px;
   background-color: #ff4d4f;
   color: white;
@@ -317,11 +322,16 @@
   color: #ff4d4f;
   padding: 8px;
 }
+.order-info-section{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .order-summary {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 0px 16px;
+  padding: 10px 0px 14px;
 }
 .view-details-btn {
   background: none;
@@ -476,22 +486,28 @@
 }
 
 .delete-product-button {
-  margin-top: 20px;
-  padding: 10px;
-  background-color: #de717c;
-  color: white;
+  padding: 5px 10px;
+  background-color: #fff;
+  color: #ff4d4f;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  font-size: 0.9rem;
   display: flex;
-  justify-content: flex-end;
-  margin-left: auto;
+  align-items: center;
+}
+
+.delete-product-button:hover {
+  background-color: #ff7875;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .product-pagination-arrow{
   width: 18px;
   height: 18px;
+  display: block;
 }
 
 /* Chrome, Safari, Edge, Opera */
@@ -523,6 +539,11 @@ input[type=number] {
   background: #f5f5f5;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   transform: scale(1.08);
+}
+
+.product-description-container{
+  max-width: 1200px;
+  padding: 0px 30px;
 }
 
 /* 반응형 레이아웃 */
@@ -564,13 +585,10 @@ input[type=number] {
   }
   
   .info-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-  }
-  
-  .time-display {
-    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0px;
+    align-items: center;
   }
   
   .modal-nav.prev { left: -25px; }

@@ -97,10 +97,12 @@
 }
 
 .product-status {
+  font-size: 0.75rem;
   color: #007bff;
 }
 
 .product-status-inactive {
+  font-size: 0.75rem;
   color: #e74c3c;
 }
 
@@ -115,8 +117,7 @@
 .product-end-date {
   font-size: 0.85rem;
   color: #7f8c8d;
-  margin-top: 10px;
-  margin-bottom: 5px;
+  margin-top: 5px;
   text-align: right;
 }
 
@@ -289,5 +290,9 @@
   .search-input-wrapper {
     width: 100% !important;
     min-width: unset !important;
+  }
+  .product-list {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
   }
 }
