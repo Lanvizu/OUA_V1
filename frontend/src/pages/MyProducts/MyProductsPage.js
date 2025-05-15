@@ -1,52 +1,121 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MyProductsPage.css';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
+import noImageIcon from '../../assets/images/no-image-icon.png';
 
 const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
 
 const MyProductsPage = () => {
   const [products, setProducts] = useState([]);
-  const [pageInfo, setPageInfo] = useState({ size: 10, number: 0, totalElements: 0, totalPages: 0 });
   const [loading, setLoading] = useState(false);
+  const [hasNext, setHasNext] = useState(true);
+  const [lastCreatedDate, setLastCreatedDate] = useState(null);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
-  const fetchProducts = async (pageNumber = 0) => {
+  const navigate = useNavigate();
+  const observer = useRef();
+
+  const fetchProducts = useCallback(async () => {
+    if (loading || !hasNext) return;
+
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/v1/my-products?page=${pageNumber}&size=10`);
+      const params = new URLSearchParams({
+        size: 10,
+        ...(lastCreatedDate && { lastCreatedDate }),
+      });
+
+      const response = await fetch(`/v1/my-products?${params}`);
       if (!response.ok) {
         throw new Error('상품 데이터를 불러오는 데 실패했습니다.');
       }
+
       const data = await response.json();
-      const processedProducts = data.content.map((product) => ({
+      const newProducts = data.content.map(product => ({
         ...product,
-        imageUrls: product.imageUrls.map((imageId) => `${IMAGE_BASE_URL}${imageId}`),
+        mainImageUrl: product.mainImageUrl
+          ? `${IMAGE_BASE_URL}${product.mainImageUrl}`
+          : noImageIcon, 
       }));
-      setProducts(processedProducts);
-      setPageInfo(data.page);
+      setProducts((prev) => [...prev, ...newProducts]);
+      setHasNext(data.hasNext);
+
+      if (newProducts.length > 0) {
+        setLastCreatedDate(newProducts[newProducts.length - 1].createdDate);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [lastCreatedDate, hasNext, loading]);
+
+  const fetchProductsRef = useRef(fetchProducts);
+  useEffect(() => {
+    fetchProductsRef.current = fetchProducts;
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    fetchProductsRef.current();
+  }, []);
+
+  const lastProductRef = useCallback((node) => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasNext && !loading) {
+        fetchProductsRef.current();
+      }
+    });
+
+    if (node) observer.current.observe(node);
+  }, [hasNext, loading]);
 
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 0 && newPage < pageInfo.totalPages) {
-      fetchProducts(newPage);
-    }
-  };
+  const MyProductCard = ({ product, innerRef, onClick }) => (
+    <div
+      ref={innerRef}
+      className="my-products-card"
+      onClick={() => onClick(product.productId)}
+      style={{ cursor: 'pointer' }}
+    >
+      <div className="my-products-image-container">
+        {product.mainImageUrl ? (
+          <img src={product.mainImageUrl} alt={product.name} className="my-products-card-image" />
+        ) : (
+          <div className="my-products-placeholder-image">이미지가 없습니다</div>
+        )}
+      </div>
+      <div className="my-products-card-info">
+        <h3 className="my-products-name">{product.name}</h3>
+        
+        <div className="product-meta">
+          <div className="my-products-price-box">
+            <span className="my-products-highest-price">
+              {product.highestOrderPrice.toLocaleString()}원
+            </span>
+            <span className="my-products-buy-now-price">
+              {product.buyNowPrice.toLocaleString()}원
+            </span>
+          </div>
+          <p
+              className={`product-status ${product.status !== 'ACTIVE' ? 'product-status-inactive' : ''}`}
+            >
+            {product.status}
+          </p>
+        </div>
+        <div className="my-products-end-date">
+          {new Date(product.endDate).toLocaleString()}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="my-products-container">
@@ -60,62 +129,19 @@ const MyProductsPage = () => {
         {!loading && !error && products.length === 0 && (
           <p className="my-products-empty">표시할 상품이 없습니다.</p>
         )}
-
         {/* 상품 목록 */}
         <div className="my-products-list">
-          {products.map((product) => (
-            <div
-              key={product.productId}
-              className="my-products-card"
-              onClick={() => handleProductClick(product.productId)}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="my-products-image-container">
-                {product.imageUrls.length > 0 ? (
-                  <img
-                    src={product.imageUrls[0]}
-                    alt={product.name}
-                    className="my-products-card-image"
-                  />
-                ) : (
-                  <div className="my-products-placeholder-image">이미지가 없습니다</div>
-                )}
-              </div>
-              <div className="my-products-card-info">
-                <h3 className="my-products-name">{product.name}</h3>
-                <div className="my-products-price-box">
-                  <span className="my-products-highest-price">{product.highestOrderPrice.toLocaleString()}원</span>
-                  <span className="my-products-buy-now-price">{product.buyNowPrice.toLocaleString()}원</span>
-                </div>
-                <div className="my-products-end-date">
-                  {new Date(product.endDate).toLocaleString()}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 페이지네이션 */}
-        <div className="my-products-pagination">
-          <button
-            className="my-products-pagination-btn"
-            onClick={() => handlePageChange(pageInfo.number - 1)}
-            disabled={pageInfo.number === 0}
-            aria-label="이전 페이지"
-          >
-            &lt;
-          </button>
-          <span className="my-products-pagination-info">
-            {pageInfo.number + 1} / {pageInfo.totalPages}
-          </span>
-          <button
-            className="my-products-pagination-btn"
-            onClick={() => handlePageChange(pageInfo.number + 1)}
-            disabled={pageInfo.number + 1 === pageInfo.totalPages}
-            aria-label="다음 페이지"
-          >
-            &gt;
-          </button>
+          {products.map((product, index) => {
+            const isLast = index === products.length - 1;
+            return (
+              <MyProductCard
+                key={product.productId}
+                product={product}
+                innerRef={isLast ? lastProductRef : null}
+                onClick={handleProductClick}
+              />
+            );
+          })}
         </div>
       </main>
     </div>

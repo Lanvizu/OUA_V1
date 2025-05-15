@@ -1,32 +1,28 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './MyOrdersPage.css';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
-import RightArrowIcon from '../../assets/images/icon-right.png';
-import LeftArrowIcon from '../../assets/images/icon-left.png';
 
 const MyOrdersPage = () => {
   const [orders, setOrders] = useState([]);
-  const [pageInfo, setPageInfo] = useState({ size: 10, number: 0, totalElements: 0, totalPages: 0 });
   const [loading, setLoading] = useState(false);
+  const [hasNext, setHasNext] = useState(true);
+  const [lastCreatedDate, setLastCreatedDate] = useState(null);
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const getQueryParam = useCallback(
-    (key, defaultValue) => searchParams.get(key) || defaultValue,
-    [searchParams]
-  );
+  const observer = useRef();
 
   const fetchOrders = useCallback(async () => {
+    if (loading || !hasNext) return;
+
     setLoading(true);
     setError(null);
 
     try {
       const params = new URLSearchParams({
-        page: getQueryParam('page', 0),
-        size: getQueryParam('size', 10),
+        size: 10,
+        ...(lastCreatedDate && { lastCreatedDate }),
       });
 
       const response = await fetch(`/v1/my-orders?${params}`);
@@ -36,69 +32,63 @@ const MyOrdersPage = () => {
       }
 
       const data = await response.json();
-      setOrders(data.content);
-      setPageInfo(data.page);
+      const newOrders = data.content;
+      setOrders((prev) => [...prev, ...newOrders]);
+      setHasNext(data.hasNext);
+
+      if (newOrders.length > 0) {
+        const last = newOrders[newOrders.length - 1];
+        setLastCreatedDate(last.createdDate);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [getQueryParam]);
+  }, [lastCreatedDate, hasNext, loading]);
 
-  // 페이지네이션 변경
-  const updatePage = (page) => {
-    const updatedParams = new URLSearchParams({
-      page,
-      size: getQueryParam('size', 10),
-    });
-    setSearchParams(updatedParams);
-  };
+  const fetchOrdersRef = useRef(fetchOrders);
+  useEffect(() => {
+    fetchOrdersRef.current = fetchOrders;
+  }, [fetchOrders]);
 
   useEffect(() => {
-    fetchOrders();
-  }, [searchParams, fetchOrders]);
+    fetchOrdersRef.current();
+  }, []);
 
-  // 주문 상세(상품 상세)로 이동
+  const lastOrderRef = useCallback((node) => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasNext && !loading) {
+        fetchOrdersRef.current();
+      }
+    });
+
+    if (node) observer.current.observe(node);
+  }, [hasNext, loading]);
+
   const handleProductClick = (productId) => navigate(`/product/${productId}`);
 
-  // 주문 카드 컴포넌트
-  const OrderCard = ({ order }) => (
-    <div className="order-card" onClick={() => handleProductClick(order.productId)} style={{ cursor: 'pointer' }}>
+  const OrderCard = ({ order, innerRef }) => (
+    <div
+      ref={innerRef}
+      className="order-card"
+      onClick={() => handleProductClick(order.productId)}
+      style={{ cursor: 'pointer' }}
+    >
       <div className="order-card-info">
         <h2 className="order-product-name">{order.productName}</h2>
         <div className="order-meta">
           <span className="order-status">{order.status}</span>
           <span className="order-price">{order.orderPrice.toLocaleString()}원</span>
         </div>
-        <div className='order-dates-and-id'>
+        <div className="order-dates-and-id">
           <div className="order-id">주문번호: {order.orderId}</div>
           <span className="order-dates">{new Date(order.productEndDate).toLocaleString()}</span>
         </div>
       </div>
-    </div>
-  );
-
-  const Pagination = ({ pageInfo }) => (
-    <div className="pagination">
-      <button
-        className="pagination-btn"
-        onClick={() => updatePage(pageInfo.number - 1)}
-        disabled={pageInfo.totalPages === 0 || pageInfo.number === 0}
-        aria-label="이전 페이지"
-      >
-        <img src={LeftArrowIcon} alt="이전" className="pagination-arrow" />
-      </button>
-      <span className="pagination-info">
-        {pageInfo.number + 1} / {pageInfo.totalPages}
-      </span>
-      <button
-        className="pagination-btn"
-        onClick={() => updatePage(pageInfo.number + 1)}
-        disabled={pageInfo.totalPages === 0 || pageInfo.number + 1 === pageInfo.totalPages}
-        aria-label="다음 페이지"
-      >
-        <img src={RightArrowIcon} alt="다음" className="pagination-arrow" />
-      </button>
     </div>
   );
 
@@ -114,12 +104,17 @@ const MyOrdersPage = () => {
         {!loading && !error && orders.length === 0 && <p>표시할 주문이 없습니다.</p>}
 
         <div className="order-list">
-          {orders.map((order) => (
-            <OrderCard key={order.orderId} order={order} />
-          ))}
+          {orders.map((order, index) => {
+            const isLast = index === orders.length - 1;
+            return (
+              <OrderCard
+                key={order.orderId}
+                order={order}
+                innerRef={isLast ? lastOrderRef : null}
+              />
+            );
+          })}
         </div>
-
-        <Pagination pageInfo={pageInfo} />
       </main>
     </div>
   );

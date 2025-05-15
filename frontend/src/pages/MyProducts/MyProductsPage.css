@@ -33,12 +33,10 @@
   }
   
   .my-products-card {
-    background: #fff;
+    background: white;
     border-radius: 12px;
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    flex-direction: column;
   }
   
   .my-products-card:hover {
@@ -84,6 +82,12 @@
     text-overflow: ellipsis;
   }
   
+  .my-products-meta{
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
   .my-products-price-box {
     display: flex;
     flex-direction: column;
@@ -101,51 +105,8 @@
   .my-products-end-date {
     font-size: 0.85rem;
     color: #7f8c8d;
-    margin-top: 10px;
+    margin-top: 5px;
     text-align: right;
-    margin-bottom: 5px;
-  }
-  
-  .my-products-pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 30px 0;
-    gap: 12px;
-  }
-  
-  .my-products-pagination-btn {
-    background: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s, border 0.2s;
-    padding: 0;
-  }
-  
-  .my-products-pagination-btn:disabled {
-    background: #fff;
-    color: #bdc3c7;
-    border: 1px solid #ececec;
-    cursor: not-allowed;
-  }
-  
-  .my-products-pagination-btn:not(:disabled):hover {
-    background: #f0f6fb;
-    color: #1565c0;
-    border: 1.5px solid #217dbb;
-  }
-  
-  .my-products-pagination-info {
-    font-size: 1rem;
-    color: #333;
-    min-width: 70px;
-    text-align: center;
   }
   
   @media (max-width: 600px) {
