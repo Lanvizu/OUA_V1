@@ -8,8 +8,7 @@ import OUA.OUA_V1.product.exception.ProductNotFoundException;
 import OUA.OUA_V1.product.exception.badRequest.ProductEndDateExceededException;
 import OUA.OUA_V1.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,14 +47,15 @@ public class ProductService {
                 .orElseThrow(ProductNotFoundException::new);
     }
 
-    public Page<ProductPreviewResponse> getProductsByFilters(String keyword, Boolean onSale,
-                                                      Integer categoryId, Pageable pageable) {
-        return productRepository.findAllByFilters(keyword, onSale, categoryId, pageable)
+    public Slice<ProductPreviewResponse> findByFiltersWithKeySet(
+            String keyword, Boolean onSale, Integer categoryId, LocalDateTime lastCreatedDate, int size) {
+        return productRepository.findByFiltersWithKeySet(keyword, onSale, categoryId, lastCreatedDate, size)
                 .map(this::toProductPreviewResponse);
     }
 
-    public Page<ProductPreviewResponse> getProductsByMemberId(Long memberId, Pageable pageable) {
-        return productRepository.findAllByMemberId(memberId, pageable)
+    public Slice<ProductPreviewResponse> findByMemberIdWithKeySet(
+            Long memberId, LocalDateTime lastCreatedDate, int size) {
+        return productRepository.findByMemberIdWithKeySet(memberId, lastCreatedDate, size)
                 .map(this::toProductPreviewResponse);
     }
 
@@ -65,8 +65,9 @@ public class ProductService {
                 product.getName(),
                 product.getHighestOrderPrice(),
                 product.getBuyNowPrice(),
+                product.getCreatedDate(),
                 product.getEndDate(),
-                product.getImageUrls(),
+                product.getMainImageUrl(),
                 product.getStatus()
         );
     }

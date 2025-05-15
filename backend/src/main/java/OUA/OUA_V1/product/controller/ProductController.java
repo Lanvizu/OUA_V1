@@ -7,19 +7,18 @@ import OUA.OUA_V1.product.controller.request.ProductImagesRequest;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
 import OUA.OUA_V1.product.controller.response.ProductPreviewResponse;
 import OUA.OUA_V1.product.controller.response.ProductResponse;
+import OUA.OUA_V1.product.controller.response.SlicedResponse;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.facade.ProductFacade;
 import OUA.OUA_V1.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
+import org.springframework.data.domain.Slice;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/v1")
@@ -48,13 +47,15 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-    public ResponseEntity<PagedModel<ProductPreviewResponse>> getProducts(
+    public ResponseEntity<SlicedResponse<ProductPreviewResponse>> getProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean onSale,
             @RequestParam(required = false) Integer categoryId,
-            @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<ProductPreviewResponse> products = productService.getProductsByFilters(keyword, onSale, categoryId, pageable);
-        return ResponseEntity.ok(new PagedModel<>(products));
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastCreatedDate,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Slice<ProductPreviewResponse> products = productService.findByFiltersWithKeySet(keyword, onSale,categoryId, lastCreatedDate, size);
+        return ResponseEntity.ok(new SlicedResponse<>(products.getContent(), products.hasNext()));
     }
 
     @GetMapping("/product/{productId}")
@@ -66,10 +67,11 @@ public class ProductController {
     }
 
     @GetMapping("/my-products")
-    public ResponseEntity<PagedModel<ProductPreviewResponse>> getMyProducts(
-            @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.DESC) Pageable pageable,
+    public ResponseEntity<SlicedResponse<ProductPreviewResponse>> getMyProducts(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastCreatedDate,
+            @RequestParam(defaultValue = "20") int size,
             @LoginMember Long memberId) {
-        Page<ProductPreviewResponse> products = productService.getProductsByMemberId(memberId, pageable);
-        return ResponseEntity.ok(new PagedModel<>(products));
+        Slice<ProductPreviewResponse> products = productService.findByMemberIdWithKeySet(memberId, lastCreatedDate, size);
+        return ResponseEntity.ok(new SlicedResponse<>(products.getContent(), products.hasNext()));
     }
 }

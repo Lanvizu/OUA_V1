@@ -1,10 +1,12 @@
 package OUA.OUA_V1.product.repository.query;
 
 import OUA.OUA_V1.product.domain.Product;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+
+import java.time.LocalDateTime;
 
 public interface ProductRepositoryCustom {
-    Page<Product> findAllByFilters(String keyword, Boolean onSale, Integer categoryId, Pageable pageable);
-    Page<Product> findAllByMemberId(Long memberId, Pageable pageable);
+    Slice<Product> findByFiltersWithKeySet(String keyword, Boolean onSale,
+                                           Integer categoryId, LocalDateTime lastCreatedDate, int size);
+    Slice<Product> findByMemberIdWithKeySet(Long memberId, LocalDateTime localDateTime, int size);
 }
