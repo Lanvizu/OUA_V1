@@ -10,9 +10,11 @@ import OUA.OUA_V1.product.domain.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -55,8 +57,9 @@ public class OrdersService {
         return orderRepository.countByProductId(productId);
     }
 
-    public Page<MyOrdersResponse> getMyOrders(Long memberId, Pageable pageable) {
-        return orderRepository.findAllByMemberId(memberId, pageable)
+    public Slice<MyOrdersResponse> findByMemberIdWithKeySet(Long memberId, LocalDateTime lastCreatedDate,
+                                                            int size) {
+        return orderRepository.findByMemberIdWithKeySet(memberId, lastCreatedDate, size)
                 .map(this::toMyOrdersResponse);
     }
 
@@ -73,6 +76,7 @@ public class OrdersService {
                 orders.getProduct().getId(),
                 orders.getProduct().getName(),
                 orders.getProduct().getEndDate(),
+                orders.getCreatedDate(),
                 orders.getId(),
                 orders.getOrderPrice(),
                 orders.getStatus()

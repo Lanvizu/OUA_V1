@@ -3,16 +3,13 @@ package OUA.OUA_V1.product.repository.query;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.domain.ProductStatus;
 import OUA.OUA_V1.product.domain.QProduct;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
@@ -20,91 +17,70 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Product> findAllByFilters(String keyword, Boolean onSale,
-                                          Integer categoryId, Pageable pageable) {
+    public Slice<Product> findByFiltersWithKeySet(String keyword, Boolean onSale,
+                                                  Integer categoryId, LocalDateTime lastCreatedDate, int size) {
         QProduct product = QProduct.product;
 
-        BooleanExpression predicate = createPredicate(product, keyword, onSale, categoryId);
+        BooleanBuilder predicate = new BooleanBuilder()
+                .and(product.deleted.isFalse());
+
+        if (keyword != null && !keyword.isEmpty()) {
+            predicate.and(product.name.containsIgnoreCase(keyword));
+        }
+
+        if (onSale != null) {
+            predicate.and(product.status.eq(ProductStatus.ACTIVE));
+        }
+
+        if (categoryId != null) {
+            predicate.and(product.categoryId.eq(categoryId));
+        }
+
+        if (lastCreatedDate != null) {
+            predicate.and(product.createdDate.lt(lastCreatedDate));
+        }
 
         List<Product> products = queryFactory
                 .selectFrom(product)
                 .where(predicate)
-                .orderBy(product.createdDate.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .orderBy(product.createdDate.desc(), product.id.desc())
+                .limit(size + 1)
                 .fetch();
 
-        long totalCount = Optional.ofNullable(
-                queryFactory
-                        .select(product.countDistinct())
-                        .from(product)
-                        .where(predicate)
-                        .fetchOne()
-        ).orElse(0L);
+        boolean hasNext = products.size() > size;
 
-        return new PageImpl<>(products, pageable, totalCount);
-    }
+        if (hasNext) {
+            products.removeLast();
+        }
 
-    private BooleanExpression createPredicate(
-            QProduct product,
-            String keyword,
-            Boolean onSale,
-            Integer categoryId
-    ) {
-        BooleanExpression predicate = Expressions.asBoolean(true).isTrue();
-
-        predicate = predicate.and(product.deleted.isFalse());
-        predicate = predicate.and(containsKeyword(product, keyword));
-        predicate = predicate.and(isStatusEqual(product, onSale));
-        predicate = predicate.and(isCategoryEqual(product, categoryId));
-
-        return predicate;
-    }
-
-    private BooleanExpression containsKeyword(QProduct product, String keyword) {
-        return (keyword != null && !keyword.isEmpty())
-                ? product.name.containsIgnoreCase(keyword)
-                : null;
-    }
-
-    private BooleanExpression isStatusEqual(QProduct product, Boolean onSale) {
-        return (onSale != null)
-                ? product.status.eq(ProductStatus.ACTIVE)
-                : null;
-    }
-
-    private BooleanExpression isCategoryEqual(QProduct product, Integer categoryId) {
-        return (categoryId != null)
-                ? product.categoryId.eq(categoryId)
-                : null;
+        return new SliceImpl<>(products, PageRequest.of(0, size), hasNext);
     }
 
     @Override
-    public Page<Product> findAllByMemberId(Long memberId, Pageable pageable) {
+    public Slice<Product> findByMemberIdWithKeySet(Long memberId, LocalDateTime lastCreatedDate, int size) {
         QProduct product = QProduct.product;
+
+        BooleanBuilder predicate = new BooleanBuilder()
+                .and(product.member.id.eq(memberId))
+                .and(product.deleted.isFalse());
+
+        if (lastCreatedDate != null) {
+            predicate.and(product.createdDate.lt(lastCreatedDate));
+        }
 
         List<Product> products = queryFactory
                 .selectFrom(product)
-                .where(
-                        product.member.id.eq(memberId),
-                        product.deleted.isFalse()
-                )
-                .orderBy(product.createdDate.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .where(predicate)
+                .orderBy(product.createdDate.desc(), product.id.desc())
+                .limit(size + 1)
                 .fetch();
 
-        Long totalCount = Optional.ofNullable(
-                queryFactory
-                        .select(product.count())
-                        .from(product)
-                        .where(
-                                product.member.id.eq(memberId),
-                                product.deleted.isFalse()
-                        )
-                        .fetchOne()
-        ).orElse(0L);
+        boolean hasNext = products.size() > size;
 
-        return new PageImpl<>(products, pageable, totalCount);
+        if (hasNext) {
+            products.removeLast();
+        }
+
+        return new SliceImpl<>(products, PageRequest.of(0, size), hasNext);
     }
 }

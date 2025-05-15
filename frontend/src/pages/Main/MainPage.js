@@ -1,87 +1,106 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './MainPage.css';
 import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 import searchIcon from '../../assets/images/icon-search.png';
-import RightArrowIcon from '../../assets/images/icon-right.png';
-import LeftArrowIcon from '../../assets/images/icon-left.png';
+import noImageIcon from '../../assets/images/no-image-icon.png';
 
 const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
 
 const Main = () => {
   const [products, setProducts] = useState([]);
-  const [pageInfo, setPageInfo] = useState({ size: 10, number: 0, totalElements: 0, totalPages: 0 });
   const [loading, setLoading] = useState(false);
+  const [hasNext, setHasNext] = useState(true);
+  const [lastCreatedDate, setLastCreatedDate] = useState(null);
   const [error, setError] = useState(null);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [onSaleFilter, setOnSaleFilter] = useState(false);
 
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const getQueryParam = useCallback(
-    (key, defaultValue) => searchParams.get(key) || defaultValue,
-    [searchParams]
-  );
+  const observer = useRef();
 
   const fetchProducts = useCallback(async () => {
+    if (loading || !hasNext) return;
+  
     setLoading(true);
     setError(null);
-
     try {
       const params = new URLSearchParams({
-        page: getQueryParam('page', 0),
-        size: getQueryParam('size', 10),
-        ...(searchParams.get('keyword') && { keyword: searchParams.get('keyword') }),
-        ...(searchParams.get('onSale') && { onSale: true }),
-        ...(searchParams.get('categoryId') && { categoryId: searchParams.get('categoryId') }),
+        size: 10,
+        ...(searchKeyword && { keyword: searchKeyword }),
+        ...(onSaleFilter && { onSale: true }),
+        ...(selectedCategoryId && { categoryId: selectedCategoryId }),
+        ...(lastCreatedDate && { lastCreatedDate }),
       });
-
+  
       const response = await fetch(`/v1/products?${params}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || errorData.title || '상품 정보를 불러오지 못했습니다.');
       }
-
+  
       const data = await response.json();
-      const processedProducts = data.content.map((product) => ({
+      const newProducts = data.content.map(product => ({
         ...product,
-        imageUrls: product.imageUrls.map((imageId) => `${IMAGE_BASE_URL}${imageId}`),
+        mainImageUrl: product.mainImageUrl
+          ? `${IMAGE_BASE_URL}${product.mainImageUrl}`
+          : noImageIcon, 
       }));
-
-      setProducts(processedProducts);
-      setPageInfo(data.page);
+      setProducts((prev) => [...prev, ...newProducts]);
+      setHasNext(data.hasNext);
+  
+      if (newProducts.length > 0) {
+        setLastCreatedDate(newProducts[newProducts.length - 1].createdDate);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [searchParams, getQueryParam]);
-
-  const updateFilterParams = (params = {}) => {
-    const updatedParams = new URLSearchParams({
-      page: params.page ?? getQueryParam('page', 0),
-      size: params.size ?? getQueryParam('size', 10),
-      ...(searchKeyword && { keyword: searchKeyword }),
-      ...(onSaleFilter && { onSale: true }),
-      ...(selectedCategoryId && { categoryId: selectedCategoryId }),
-    });
-    setSearchParams(updatedParams);
+  }, [lastCreatedDate, searchKeyword, onSaleFilter, selectedCategoryId, hasNext, loading]);
+  
+  const handleSearch = () => {
+    setProducts([]);
+    setLastCreatedDate(null);
+    setHasNext(true);
   };
 
+  const fetchProductsRef = useRef(fetchProducts);
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts, searchParams]);
+    fetchProductsRef.current = fetchProducts;
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    fetchProductsRef.current();
+  }, []);
+
+  const lastProductRef = useCallback((node) => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+  
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasNext && !loading) {
+        fetchProductsRef.current();
+      }
+    });
+  
+    if (node) observer.current.observe(node);
+  }, [hasNext, loading]);
 
   const handleProductClick = (productId) => navigate(`/product/${productId}`);
 
-  const ProductCard = ({ product }) => (
-    <div className="product-card" onClick={() => handleProductClick(product.productId)} style={{ cursor: 'pointer' }}>
+  const ProductCard = ({ product, innerRef }) => (
+    <div
+      ref={innerRef}
+      className="product-card"
+      onClick={() => handleProductClick(product.productId)}
+      style={{ cursor: 'pointer' }}
+    >
       <div className="image-container">
-        {product.imageUrls.length > 0 ? (
-          <img src={product.imageUrls[0]} alt={product.name} className="product-card-image" />
+        {product.mainImageUrl ? (
+          <img src={product.mainImageUrl} alt={product.name} className="product-card-image" />
         ) : (
           <div className="placeholder-image">이미지가 없습니다</div>
         )}
@@ -101,31 +120,6 @@ const Main = () => {
         </div>
         <p className="product-end-date">{new Date(product.endDate).toLocaleString()}</p>
       </div>
-    </div>
-  );
-
-  // 페이지네이션 컴포넌트
-  const Pagination = ({ pageInfo }) => (
-    <div className="pagination">
-      <button
-        className="pagination-btn"
-        onClick={() => updateFilterParams({ page: pageInfo.number - 1 })}
-        disabled={pageInfo.totalPages === 0 || pageInfo.number === 0}
-        aria-label="이전 페이지"
-      >
-       <img src={LeftArrowIcon} alt="이전" className="pagination-arrow" />
-      </button>
-      <span className="pagination-info">
-        {pageInfo.number + 1} / {pageInfo.totalPages}
-      </span>
-      <button
-        className="pagination-btn"
-        onClick={() => updateFilterParams({ page: pageInfo.number + 1 })}
-        disabled={pageInfo.totalPages === 0 || pageInfo.number + 1 === pageInfo.totalPages}
-        aria-label="다음 페이지"
-      >
-        <img src={RightArrowIcon} alt="다음" className="pagination-arrow" />
-      </button>
     </div>
   );
 
@@ -152,12 +146,12 @@ const Main = () => {
               placeholder="상품명 검색"
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') updateFilterParams({ page: 0 }); }}
+              onKeyDown={e => { if (e.key === 'Enter') handleSearch(); }}
             />
             <button
               className="search-icon-btn"
               type="button"
-              onClick={() => updateFilterParams({ page: 0 })}
+              onClick={handleSearch}
               aria-label="검색"
             >
               <img src={searchIcon} alt="검색" />
@@ -182,13 +176,17 @@ const Main = () => {
 
         {/* 상품 목록 */}
         <div className="product-list">
-          {products.map((product) => (
-            <ProductCard key={product.productId} product={product} />
-          ))}
+          {products.map((product, index) => {
+            const isLast = index === products.length - 1;
+            return (
+              <ProductCard
+                key={product.productId}
+                product={product}
+                innerRef={isLast ? lastProductRef : null}
+              />
+            );
+          })}
         </div>
-
-        {/* 페이지네이션 */}
-        <Pagination pageInfo={pageInfo} />
       </main>
     </div>
   );

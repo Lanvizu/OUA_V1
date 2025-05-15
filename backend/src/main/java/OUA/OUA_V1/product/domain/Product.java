@@ -62,6 +62,9 @@ public class Product extends BaseEntity implements SecureResource {
     @Column(name = "category_id", nullable = false)
     private Integer categoryId;
 
+    @Column(name = "main_image_url")
+    private String mainImageUrl;
+
     @ElementCollection
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_urls")
@@ -84,7 +87,12 @@ public class Product extends BaseEntity implements SecureResource {
         this.status = ProductStatus.ACTIVE;
         this.endDate = endDate;
         this.categoryId = categoryId;
-        this.imageUrls = imageUrls;
+        setImages(imageUrls);
+    }
+
+    private void setImages(List<String> imageUrls) {
+        this.imageUrls = imageUrls != null ? imageUrls : new ArrayList<>();
+        this.mainImageUrl = !this.imageUrls.isEmpty() ? this.imageUrls.getFirst() : null;
     }
 
     private void validateName(String name) {
