@@ -8,6 +8,7 @@ public record MyOrdersResponse(
         Long productId,
         String productName,
         LocalDateTime productEndDate,
+        LocalDateTime createdDate,
         Long orderId,
         int orderPrice,
         OrderStatus status

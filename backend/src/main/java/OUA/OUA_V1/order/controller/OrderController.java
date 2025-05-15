@@ -10,15 +10,20 @@ import OUA.OUA_V1.order.controller.response.CountAndMyOrderResponse;
 import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.order.facade.OrderFacade;
 import OUA.OUA_V1.order.service.OrdersService;
+import OUA.OUA_V1.product.controller.response.SlicedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/v1")
@@ -69,12 +74,13 @@ public class OrderController {
     }
 
     @GetMapping("/my-orders")
-    public ResponseEntity<PagedModel<MyOrdersResponse>> getMyOrders(
+    public ResponseEntity<SlicedResponse<MyOrdersResponse>> getMyOrders(
             @LoginMember Long memberId,
-            @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastCreatedDate,
+            @RequestParam(defaultValue = "20") int size
     ) {
-        Page<MyOrdersResponse> myOrders = ordersService.getMyOrders(memberId, pageable);
-        return ResponseEntity.ok(new PagedModel<>(myOrders));
+        Slice<MyOrdersResponse> myOrders = ordersService.findByMemberIdWithKeySet(memberId, lastCreatedDate, size);
+        return ResponseEntity.ok(new SlicedResponse<>(myOrders.getContent(), myOrders.hasNext()));
     }
 
     @RequireAuthCheck(targetId = "orderId", targetDomain = Orders.class)
@@ -99,6 +105,4 @@ public class OrderController {
         orderFacade.updatePrice(productId, orderId, request);
         return ResponseEntity.ok().build();
     }
-
-    // 상품 주인이 입찰 수락? 이걸 넣는 것이 적합할까...
 }
