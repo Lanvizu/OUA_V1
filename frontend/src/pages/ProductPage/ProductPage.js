@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import './ProductPage.css';
 import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
 import RightArrowIcon from '../../assets/images/icon-right.png';
@@ -102,18 +102,20 @@ const ProductPage = () => {
       return;
     }
 
-    const actionType = myOrder ? "변경" : "입찰";
+    const isUpdate = !!myOrder;
+    const actionType = isUpdate ? "변경" : "입찰";
     const confirmed = window.confirm(
       `${priceToSubmit.toLocaleString()}원으로 ${actionType}하시겠습니까?`
     );
     if (!confirmed) return;
 
     try {
-      const url = myOrder 
-        ? `/v1/product/${productId}/orders/${myOrder.orderId}/update`
+      const url = isUpdate
+        ? `/v1/product/${productId}/orders/${myOrder.orderId}`
         : `/v1/product/${productId}/orders`;
+      const method = isUpdate ? 'PATCH' : 'POST';
       const response = await fetch(url, {
-        method: 'POST',
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -154,22 +156,21 @@ const ProductPage = () => {
     setShowModal(true);
   };
 
+  const navigate = useNavigate();
+
   const handleDeleteProduct = async () => {
     if (!window.confirm("정말 상품을 삭제하시겠습니까?\n삭제된 상품은 복구할 수 없습니다.")) {
       return;
     }
     try {
-      const response = await fetch(`/v1/product/${productId}/delete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(`/v1/product/${productId}`, {
+        method: 'DELETE',
         credentials: 'include',
       });
 
       if (response.ok) {
         alert('상품을 삭제하였습니다.');
-        window.location.href = '/main'
+        navigate('/main');
       } else{
         const errorData = await response.json();
         const errorMessage = errorData.detail || errorData.title || '상품 삭제에 실패했습니다.';
@@ -247,8 +248,8 @@ const ProductPage = () => {
     setGlobalLoading(true);
     setLoadingMessage('입찰을 취소하는 중입니다...');
     try {
-      const response = await fetch(`/v1/product/${productId}/orders/${myOrder.orderId}/cancel`, {
-        method: 'POST',
+      const response = await fetch(`/v1/product/${productId}/orders/${myOrder.orderId}`, {
+        method: 'DELETE',
         credentials: 'include',
       });
       
@@ -272,7 +273,7 @@ const ProductPage = () => {
     if (!window.confirm(`${product.buyNowPrice.toLocaleString()}원에 즉시 구매하시겠습니까?`)) return;
   
     try {
-      const response = await fetch(`/v1/product/${productId}/buy-now`, {
+      const response = await fetch(`/v1/product/${productId}/orders/quick`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -295,7 +296,7 @@ const ProductPage = () => {
     setGlobalLoading(true);
     setLoadingMessage('입찰 내역을 불러오는 중입니다...');
     try {
-      const response = await fetch(`/v1/product/${productId}/total-orders?page=${page}&size=10`, {
+      const response = await fetch(`/v1/product/${productId}/orders/total?page=${page}&size=10`, {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('입찰 내역을 불러오는데 실패했습니다.');

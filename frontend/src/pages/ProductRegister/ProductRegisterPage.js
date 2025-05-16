@@ -37,7 +37,7 @@ const ProductRegisterPage = () => {
     });
 
     try {
-      const response = await fetch('/v1/product/register', {
+      const response = await fetch('/v1/product', {
         method: 'POST',
         body: formData,
         credentials: 'include',
