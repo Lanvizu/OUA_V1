@@ -56,6 +56,8 @@ const PasswordUpdatePage = () => {
         alert(`인증이 완료되었습니다!`);
 
         document.cookie = `authToken=${data.token}; path=/;`;
+        // 배포 환경
+        // document.cookie = `authToken=${data.token}; path=/; secure; samesite=strict`;
 
         setIsVerified(true);
       } else {
@@ -84,12 +86,12 @@ const PasswordUpdatePage = () => {
         return;
       }
       const response = await fetch('/v1/members/update-password', {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ password }),
+        credentials: 'include',
       });
 
       if(response.ok){
