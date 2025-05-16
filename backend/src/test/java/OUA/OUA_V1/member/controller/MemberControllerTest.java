@@ -42,7 +42,7 @@ public class MemberControllerTest extends ControllerTest {
                 .contentType(ContentType.JSON)
                 .body(request)
                 .when()
-                .post("/v1/members/email-verification")
+                .post("/v1/members/email-verifications")
                 .then()
                 .statusCode(HttpStatus.OK.value());
 
@@ -66,7 +66,7 @@ public class MemberControllerTest extends ControllerTest {
                 .contentType(ContentType.JSON)
                 .body(request)
                 .when()
-                .post("/v1/members/code-verification")
+                .post("/v1/members/code-verifications")
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("token", equalTo(MOCK_TOKEN));
@@ -98,7 +98,7 @@ public class MemberControllerTest extends ControllerTest {
                 .cookie("authToken", MOCK_TOKEN)
                 .body(request)
                 .when()
-                .post("/v1/members/signup")
+                .post("/v1/members")
                 .then()
                 .statusCode(HttpStatus.CREATED.value());
     }
@@ -115,7 +115,7 @@ public class MemberControllerTest extends ControllerTest {
                 .contentType(ContentType.JSON)
                 .body(request)
                 .when()
-                .post("/v1/members/password-update-email-verification")
+                .post("/v1/members/password/email-verifications")
                 .then()
                 .statusCode(HttpStatus.OK.value());
 
@@ -134,7 +134,7 @@ public class MemberControllerTest extends ControllerTest {
                 .contentType(ContentType.JSON)
                 .body(request)
                 .when()
-                .post("/v1/members/code-verification")
+                .post("/v1/members/code-verifications")
                 .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
     }
@@ -157,7 +157,7 @@ public class MemberControllerTest extends ControllerTest {
                 .cookie("authToken", MOCK_TOKEN)
                 .body(request)
                 .when()
-                .patch("/v1/members/update-password")
+                .patch("/v1/members/password")
                 .then()
                 .statusCode(HttpStatus.OK.value());
     }
@@ -177,7 +177,7 @@ public class MemberControllerTest extends ControllerTest {
                 .cookie("authToken", "invalid-token")
                 .body(request)
                 .when()
-                .patch("/v1/members/update-password")
+                .patch("/v1/members/password")
                 .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
     }
