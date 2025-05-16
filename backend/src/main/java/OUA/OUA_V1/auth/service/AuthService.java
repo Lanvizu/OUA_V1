@@ -57,4 +57,8 @@ public class AuthService {
         String memberId = extractClaim(token, "memberId");
         return Long.parseLong(memberId);
     }
+
+    public String extractEmail(String token) {
+        return extractClaim(token, "email");
+    }
 }

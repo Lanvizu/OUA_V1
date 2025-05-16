@@ -21,7 +21,7 @@ const AccountDetailsPage = () => {
 
   const fetchAccountDetails = async () => {
     try {
-      const response = await fetch('/v1/members/details', {
+      const response = await fetch('/v1/members/me', {
         credentials: 'include'
       });
       
@@ -38,7 +38,7 @@ const AccountDetailsPage = () => {
   const handleNicknameUpdate = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/v1/members/details/nickname', {
+      const response = await fetch('/v1/members/me/nickname', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

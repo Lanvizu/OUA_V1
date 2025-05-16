@@ -24,7 +24,7 @@ const SignUpPage = () => {
   // 이메일 인증 요청
   const handleEmailSubmit = async () => {
     try {
-      const response = await fetch('/v1/members/email-verification', {
+      const response = await fetch('/v1/members/email-verifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -48,7 +48,7 @@ const SignUpPage = () => {
   // 인증 코드 확인 요청
   const handleCodeSubmit = async () => {
     try {
-      const response = await fetch('/v1/members/code-verification', {
+      const response = await fetch('/v1/members/code-verifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: verificationCode }),
@@ -91,7 +91,7 @@ const SignUpPage = () => {
         return;
       }
 
-      const response = await fetch('/v1/members/signup', {
+      const response = await fetch('/v1/members', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

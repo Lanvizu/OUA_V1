@@ -28,7 +28,7 @@ public class ProductController {
     private final ProductFacade productFacade;
     private final ProductService productService;
 
-    @PostMapping("/product/register")
+    @PostMapping("/product")
     public ResponseEntity<Void> registerProduct(
             @LoginMember Long MemberId,
             ProductRegisterRequest productRequest,
@@ -38,7 +38,7 @@ public class ProductController {
     }
 
     @RequireAuthCheck(targetId = "productId", targetDomain = Product.class)
-    @PostMapping("/product/{productId}/delete")
+    @DeleteMapping("/product/{productId}")
     public ResponseEntity<Void> deleteProduct(
             @PathVariable("productId") Long productId,
             LoginProfile loginProfile) {

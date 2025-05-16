@@ -25,46 +25,46 @@ public class MemberController {
     private final MemberService memberService;
     private final CookieManager cookieManager;
 
-    @PostMapping("/email-verification")
+    @PostMapping("/email-verifications")
     public ResponseEntity<Void> requestSignUpEmailVerification(@RequestBody @Valid EmailRequest request) {
         memberFacade.requestEmailVerification(request);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/password-update-email-verification")
+    @PostMapping("/password/email-verifications")
     public ResponseEntity<Void> requestPasswordUpdateEmailVerification(@RequestBody @Valid EmailRequest request) {
         memberFacade.requestPasswordUpdateEmailVerification(request);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/code-verification")
+    @PostMapping("/code-verifications")
     public ResponseEntity<VerificationResponse> verifyCode(@RequestBody @Valid CodeVerificationRequest request) {
         String token = memberFacade.verifyEmailCode(request);
         return ResponseEntity.ok(new VerificationResponse(token));
     }
 
-    @PostMapping("/signup")
+    @PostMapping
     public ResponseEntity<Void> signup(@RequestBody @Valid MemberCreateRequest request,
                                        @CookieValue(name = "authToken", required = true) String token) {
         Long memberId = memberFacade.create(request, token);
         return ResponseEntity.created(URI.create("/v1/members/" + memberId)).build();
     }
 
-    @PostMapping("/update-password")
+    @PatchMapping("/password")
     public ResponseEntity<Void> updatePassword(@RequestBody @Valid NewPasswordRequest request,
                                                @CookieValue(name = "authToken", required = true) String token) {
         memberFacade.updatePassword(request, token);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/details")
+    @GetMapping("/me")
     public ResponseEntity<AccountDetailsResponse> getAccountDetails(
             @LoginMember Long memberId) {
         AccountDetailsResponse accountDetails = memberService.getAccountDetails(memberId);
         return ResponseEntity.ok(accountDetails);
     }
 
-    @PatchMapping("/details/nickname")
+    @PatchMapping("/me/nickname")
     public ResponseEntity<Void> updateNickname(
             @RequestBody @Valid NickNameUpdateRequest request,
             @LoginMember Long memberId) {

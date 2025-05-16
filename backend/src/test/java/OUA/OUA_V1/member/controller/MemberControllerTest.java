@@ -144,7 +144,7 @@ public class MemberControllerTest extends ControllerTest {
     void updatePassword_Success() {
         // Given
         memberRepository.save(MemberFixture.createTestUser(TEST_EMAIL));
-        NewPasswordRequest request = new NewPasswordRequest(TEST_EMAIL, "NewPass123!");
+        NewPasswordRequest request = new NewPasswordRequest("NewPass123!");
 
         given(tokenProvider.extractClaim(MOCK_TOKEN, "email"))
                 .willReturn(TEST_EMAIL);
@@ -157,7 +157,7 @@ public class MemberControllerTest extends ControllerTest {
                 .cookie("authToken", MOCK_TOKEN)
                 .body(request)
                 .when()
-                .post("/v1/members/update-password")
+                .patch("/v1/members/update-password")
                 .then()
                 .statusCode(HttpStatus.OK.value());
     }
@@ -166,7 +166,7 @@ public class MemberControllerTest extends ControllerTest {
     @Test
     void updatePassword_InvalidToken() {
         // Given
-        NewPasswordRequest request = new NewPasswordRequest(TEST_EMAIL, "NewPass123!");
+        NewPasswordRequest request = new NewPasswordRequest("NewPass123!");
 
         given(tokenProvider.isAlive(anyString()))
                 .willThrow(new IllegalTokenException());
@@ -177,7 +177,7 @@ public class MemberControllerTest extends ControllerTest {
                 .cookie("authToken", "invalid-token")
                 .body(request)
                 .when()
-                .post("/v1/members/update-password")
+                .patch("/v1/members/update-password")
                 .then()
                 .statusCode(HttpStatus.UNAUTHORIZED.value());
     }

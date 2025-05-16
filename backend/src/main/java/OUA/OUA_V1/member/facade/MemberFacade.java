@@ -2,6 +2,7 @@ package OUA.OUA_V1.member.facade;
 
 import OUA.OUA_V1.auth.exception.IllegalTokenException;
 import OUA.OUA_V1.auth.security.TokenProvider;
+import OUA.OUA_V1.auth.service.AuthService;
 import OUA.OUA_V1.global.service.RedisService;
 import OUA.OUA_V1.member.controller.request.CodeVerificationRequest;
 import OUA.OUA_V1.member.controller.request.EmailRequest;
@@ -30,6 +31,7 @@ public class MemberFacade {
     private final EmailService emailService;
     private final RedisService redisService;
     private final TokenProvider tokenProvider;
+    private final AuthService authService;
 
     private static final long VERIFICATION_EXPIRATION_MILLIS = 10 * 60 * 1000; //10분
 
@@ -92,8 +94,8 @@ public class MemberFacade {
 
     @Transactional
     public void updatePassword(NewPasswordRequest request, String token) {
-        validateToken(token, request.email());
-        memberService.updatePassword(request.email(), request.password());
+        String email = authService.extractEmail(token);
+        memberService.updatePassword(email, request.password());
     }
 
     private void validateToken(String token, String email) {
