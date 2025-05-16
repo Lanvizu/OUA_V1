@@ -21,7 +21,7 @@ const PasswordUpdatePage = () => {
     // 이메일 인증 요청
   const handleEmailSubmit = async () => {
     try {
-      const response = await fetch('/v1/members/password-update-email-verification', {
+      const response = await fetch('/v1/members/password/email-verifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -45,7 +45,7 @@ const PasswordUpdatePage = () => {
   // 인증 코드 확인 요청
   const handleCodeSubmit = async () => {
     try {
-      const response = await fetch('/v1/members/code-verification', {
+      const response = await fetch('/v1/members/code-verifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: verificationCode }),
@@ -85,7 +85,7 @@ const PasswordUpdatePage = () => {
         alert('토큰을 찾을 수 없습니다. 이메일 인증을 다시 진행해주세요.');
         return;
       }
-      const response = await fetch('/v1/members/update-password', {
+      const response = await fetch('/v1/members/password', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
