@@ -43,7 +43,7 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/product/{productId}/buy-now")
+    @PostMapping("/product/{productId}/orders/quick")
     public ResponseEntity<Void> buyNow(
             @LoginMember Long memberId,
             @PathVariable Long productId
@@ -53,7 +53,7 @@ public class OrderController {
     }
 
     // 상품에 대한 전체 주문 조회
-    @GetMapping("/product/{productId}/total-orders")
+    @GetMapping("/product/{productId}/orders/total")
     public ResponseEntity<PagedModel<OrdersResponse>> getProductOrders(
             @PathVariable Long productId,
             @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
@@ -84,7 +84,7 @@ public class OrderController {
     }
 
     @RequireAuthCheck(targetId = "orderId", targetDomain = Orders.class)
-    @PostMapping("/product/{productId}/orders/{orderId}/cancel")
+    @DeleteMapping("/product/{productId}/orders/{orderId}")
     public ResponseEntity<Void> cancelOrder(
             @PathVariable("productId") Long productId,
             @PathVariable("orderId") Long orderId,
@@ -95,7 +95,7 @@ public class OrderController {
     }
 
     @RequireAuthCheck(targetId = "orderId", targetDomain = Orders.class)
-    @PostMapping("/product/{productId}/orders/{orderId}/update")
+    @PatchMapping("/product/{productId}/orders/{orderId}")
     public ResponseEntity<Void> updateOrder(
             @PathVariable("productId") Long productId,
             @PathVariable("orderId") Long orderId,
