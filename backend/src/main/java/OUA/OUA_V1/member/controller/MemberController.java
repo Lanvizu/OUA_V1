@@ -50,7 +50,7 @@ public class MemberController {
         return ResponseEntity.created(URI.create("/v1/members/" + memberId)).build();
     }
 
-    @PostMapping("/update-password")
+    @PatchMapping("/update-password")
     public ResponseEntity<Void> updatePassword(@RequestBody @Valid NewPasswordRequest request,
                                                @CookieValue(name = "authToken", required = true) String token) {
         memberFacade.updatePassword(request, token);
