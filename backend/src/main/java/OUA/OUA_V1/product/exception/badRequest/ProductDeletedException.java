@@ -1,7 +1,11 @@
 package OUA.OUA_V1.product.exception.badRequest;
 
-public class ProductDeletedException extends RuntimeException {
-  public ProductDeletedException(String message) {
-    super(message);
-  }
+import OUA.OUA_V1.advice.badRequest.BadRequestException;
+
+public class ProductDeletedException extends BadRequestException {
+    private static final String MESSAGE = "삭제된 상품입니다.";
+
+    public ProductDeletedException() {
+        super(MESSAGE);
+    }
 }
