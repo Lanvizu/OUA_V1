@@ -11,6 +11,7 @@ import OUA.OUA_V1.product.controller.request.ProductImagesRequest;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
 import OUA.OUA_V1.product.controller.response.ProductResponse;
 import OUA.OUA_V1.product.domain.Product;
+import OUA.OUA_V1.product.exception.badRequest.ProductDeletedException;
 import OUA.OUA_V1.product.exception.badRequest.ProductIllegalFileException;
 import OUA.OUA_V1.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -44,11 +45,18 @@ public class ProductFacade {
     }
 
     @Transactional
-    public void deleteProduct(Long productId) {
-        Product product = productService.findById(productId);
-        List<String> imageUrls = product.getImageUrls();
-        deleteImages(imageUrls);
-        productService.deleteProduct(product);
+    public void deleteProduct(Long productId){
+        lockTemplate.executeWithLock(
+                productId,
+                () -> {
+                    Product product = productService.findById(productId);
+                    ordersService.failAllByProductId(product.getId());
+                    List<String> imageUrls = product.getImageUrls();
+                    deleteImages(imageUrls);
+                    productService.deleteProduct(product);
+                    return null;
+                }
+        );
     }
 
     private void deleteImages(List<String> imageUrls) {
@@ -76,6 +84,9 @@ public class ProductFacade {
 
     public ProductResponse getProductWithOwnershipCheck(Long productId, Long memberId) {
         Product product = productService.findById(productId);
+        if (product.isDeleted()) {
+            throw new ProductDeletedException();
+        }
         boolean isOwner = product.getMember().getId().equals(memberId);
         return toProductResponse(product, isOwner);
     }
@@ -104,11 +115,11 @@ public class ProductFacade {
                     if(product.getHighestOrderId() != null){
                         Orders orders = ordersService.findById(product.getHighestOrderId());
                         orders.confirmOrder();
+                        ordersService.failOtherOrders(product.getId(), orders.getId());
                         product.soldAuction();
                     }else {
                         product.unSoldAuction();
                     }
-                    // 해당 상품에 있는 모든 입찰 상태 변경 해야할까?
                 }
         );
     }

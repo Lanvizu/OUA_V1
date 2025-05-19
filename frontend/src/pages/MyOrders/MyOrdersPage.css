@@ -46,7 +46,23 @@
   }
   .order-status {
     font-weight: bold;
+  }
+  
+  .status-active {
     color: #007bff;
+  }
+  
+  .status-confirmed {
+    color: #28a745;
+  }
+  
+  .status-canceled,
+  .status-failed {
+    color: #dc3545;
+  }
+  
+  .status-default {
+    color: #6c757d;
   }
   .order-price {
     color: #e67e22;
