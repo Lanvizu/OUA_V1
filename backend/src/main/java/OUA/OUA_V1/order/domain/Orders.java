@@ -56,6 +56,10 @@ public class Orders extends BaseEntity implements SecureResource {
         this.status = OrderStatus.CANCELED;
     }
 
+    public void markAsFailed() {
+        this.status = OrderStatus.FAILED;
+    }
+
     public void updateOrderPrice(int orderPrice) {
         this.orderPrice = orderPrice;
     }
