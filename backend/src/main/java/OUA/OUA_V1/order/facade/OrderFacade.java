@@ -55,13 +55,13 @@ public class OrderFacade {
                     Product product = productService.findById(productId);
                     validateOwnProduct(memberId, product);
                     validateProductIsActive(product);
-                    // 주문이 존재할 경우 이전 주문 취소 추가.
 
                     Member member = memberService.findById(memberId);
-                    Orders orders = ordersService.buyNowOrder(member, product);
-                    product.updateHighestOrder(orders.getId(), orders.getOrderPrice());
+                    Orders confirmedOrders = ordersService.buyNowOrder(member, product);
+                    product.updateHighestOrder(confirmedOrders.getId(), confirmedOrders.getOrderPrice());
+                    ordersService.failOtherOrders(product.getId(), confirmedOrders.getId());
                     product.soldAuction();
-                    return orders.getId();
+                    return confirmedOrders.getId();
                 }
         );
     }
