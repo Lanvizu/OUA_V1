@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,6 +38,22 @@ public class OrdersService {
         return orderRepository.save(orders);
     }
 
+    @Transactional
+    public void failOtherOrders(Long productId, Long confirmedOrderId) {
+        List<Orders> orders = orderRepository.findActiveOrdersByProductId(productId, confirmedOrderId);
+        for (Orders order : orders) {
+            order.markAsFailed();
+        }
+    }
+
+    @Transactional
+    public void failAllByProductId(Long productId){
+        List<Orders> orders = orderRepository.findActiveOrdersByProductId(productId, null);
+        for (Orders order : orders) {
+            order.markAsFailed();
+        }
+    }
+
     public Orders findById(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(OrderNotFoundException::new);
@@ -49,7 +66,7 @@ public class OrdersService {
     }
 
     public Page<OrdersResponse> getProductOrders(Long productId, Pageable pageable) {
-        return orderRepository.findAllByProductId(productId, pageable)
+        return orderRepository.findAllByProductIdWithPageable(productId, pageable)
                 .map(this::toOrdersResponse);
     }
 

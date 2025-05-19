@@ -5,6 +5,7 @@ import OUA.OUA_V1.order.domain.OrderStatus;
 import OUA.OUA_V1.order.domain.QOrders;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 
@@ -63,7 +64,7 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     }
 
     @Override
-    public Page<Orders> findAllByProductId(Long productId, Pageable pageable) {
+    public Page<Orders> findAllByProductIdWithPageable(Long productId, Pageable pageable) {
         QOrders order = QOrders.orders;
 
         List<Orders> orders = queryFactory
@@ -120,4 +121,23 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
                         .fetchOne()
         );
     }
+
+    @Override
+    public List<Orders> findActiveOrdersByProductId(Long productId, @Nullable Long excludeOrderId) {
+        QOrders order = QOrders.orders;
+
+        BooleanBuilder where = new BooleanBuilder()
+                .and(order.product.id.eq(productId))
+                .and(order.status.eq(OrderStatus.ACTIVE));
+
+        if (excludeOrderId != null) {
+            where.and(order.id.ne(excludeOrderId));
+        }
+
+        return queryFactory
+                .selectFrom(order)
+                .where(where)
+                .fetch();
+    }
+
 }
