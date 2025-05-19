@@ -71,6 +71,20 @@ const MyOrdersPage = () => {
 
   const handleProductClick = (productId) => navigate(`/product/${productId}`);
 
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'ACTIVE':
+        return 'status-active';
+      case 'CONFIRMED':
+        return 'status-confirmed';
+      case 'FAILED':
+      case 'CANCELED':
+        return 'status-canceled';
+      default:
+        return 'status-default';
+    }
+  };
+
   const OrderCard = ({ order, innerRef }) => (
     <div
       ref={innerRef}
@@ -81,7 +95,9 @@ const MyOrdersPage = () => {
       <div className="order-card-info">
         <h2 className="order-product-name">{order.productName}</h2>
         <div className="order-meta">
-          <span className="order-status">{order.status}</span>
+          <span className={`order-status ${getStatusClass(order.status)}`}>
+            {order.status}
+          </span>
           <span className="order-price">{order.orderPrice.toLocaleString()}원</span>
         </div>
         <div className="order-dates-and-id">

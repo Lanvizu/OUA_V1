@@ -184,7 +184,12 @@ const ProductPage = () => {
       try {
         const response = await fetch(`/v1/product/${productId}`);
         if (!response.ok) {
-          throw new Error('상품을 불러오는데 실패했습니다.');
+          if (response.status === 400) {
+            setError('이미 삭제된 상품입니다.');
+          } else {
+            setError('상품을 불러오는데 실패했습니다.');
+          }
+          return;
         }
         const data = await response.json();
         const processedData = {
