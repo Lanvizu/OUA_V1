@@ -11,7 +11,6 @@ const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
 const ProductPage = () => {
   const { productId } = useParams();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showModal, setShowModal] = useState(false);
   const [product, setProduct] = useState(null);
   
   const [error, setError] = useState('');
@@ -149,11 +148,6 @@ const ProductPage = () => {
     setCurrentImageIndex((prev) =>
       prev === product.imageUrls.length - 1 ? 0 : prev + 1
     );
-  };
-
-  const openImageModal = (index) => {
-    setCurrentImageIndex(index);
-    setShowModal(true);
   };
 
   const navigate = useNavigate();
@@ -349,7 +343,6 @@ const ProductPage = () => {
                     src={url}
                     alt={`상품 이미지 ${index + 1}`}
                     className={`product-image ${index === currentImageIndex ? 'active' : ''}`}
-                    onClick={() => openImageModal(index)}
                   />
                 ))}
 
@@ -375,29 +368,6 @@ const ProductPage = () => {
               <div className="placeholder-image">이미지가 없습니다</div>
             )}
             </div>
-            
-
-            {/* 이미지 모달 */}
-            {showModal && (
-              <div className="image-modal" onClick={() => setShowModal(false)}>
-                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                  <span className="close" onClick={() => setShowModal(false)}>
-                    &times;
-                  </span>
-                  <img
-                    src={product.imageUrls[currentImageIndex]}
-                    alt={`확대 보기 ${currentImageIndex + 1}`}
-                    className="modal-image"
-                  />
-                  <button className="modal-nav prev" onClick={handlePrev}>
-                    <img src={LeftArrowIcon} alt="이전" className="product-pagination-arrow" />
-                  </button>
-                  <button className="modal-nav next" onClick={handleNext}>
-                    <img src={RightArrowIcon} alt="다음" className="product-pagination-arrow" />
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* 상품 정보 섹션 */}
             <div className="product-details">

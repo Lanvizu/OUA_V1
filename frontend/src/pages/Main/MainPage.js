@@ -14,6 +14,8 @@ const Main = () => {
   const [hasNext, setHasNext] = useState(true);
   const [lastCreatedDate, setLastCreatedDate] = useState(null);
   const [error, setError] = useState(null);
+
+  const [inputValue, setInputValue] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [onSaleFilter, setOnSaleFilter] = useState(false);
@@ -21,36 +23,74 @@ const Main = () => {
   const navigate = useNavigate();
   const observer = useRef();
 
-  const fetchProducts = useCallback(async () => {
-    if (loading || !hasNext) return;
-  
+  const stateRef = useRef({
+    searchKeyword,
+    selectedCategoryId,
+    onSaleFilter,
+    lastCreatedDate,
+    hasNext,
+    loading,
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      searchKeyword,
+      selectedCategoryId,
+      onSaleFilter,
+      lastCreatedDate,
+      hasNext,
+      loading,
+    };
+  }, [searchKeyword, selectedCategoryId, onSaleFilter, lastCreatedDate, hasNext, loading]);
+
+  const resetProducts = () => {
+    setProducts([]);
+    setLastCreatedDate(null);
+    setHasNext(true);
+    setError(null);
+  };
+
+  const fetchProducts = useCallback(async (reset = false) => {
+    const {
+      searchKeyword: kw,
+      selectedCategoryId: cat,
+      onSaleFilter: sale,
+      lastCreatedDate: lastDate,
+      hasNext: next,
+      loading: isLoading,
+    } = stateRef.current;
+
+    if (isLoading || !next) return;
+
     setLoading(true);
     setError(null);
+
     try {
       const params = new URLSearchParams({
         size: 10,
-        ...(searchKeyword && { keyword: searchKeyword }),
-        ...(onSaleFilter && { onSale: true }),
-        ...(selectedCategoryId && { categoryId: selectedCategoryId }),
-        ...(lastCreatedDate && { lastCreatedDate }),
+        ...(kw && { keyword: kw }),
+        ...(sale && { onSale: true }),
+        ...(cat && { categoryId: cat }),
+        ...(lastDate && !reset && { lastCreatedDate: lastDate }),
       });
-  
+
       const response = await fetch(`/v1/products?${params}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || errorData.title || '상품 정보를 불러오지 못했습니다.');
       }
-  
+
       const data = await response.json();
       const newProducts = data.content.map(product => ({
         ...product,
         mainImageUrl: product.mainImageUrl
           ? `${IMAGE_BASE_URL}${product.mainImageUrl}`
-          : noImageIcon, 
+          : noImageIcon,
       }));
-      setProducts((prev) => [...prev, ...newProducts]);
+
+      setProducts(prev => reset ? newProducts : [...prev, ...newProducts]);
       setHasNext(data.hasNext);
-  
+
       if (newProducts.length > 0) {
         setLastCreatedDate(newProducts[newProducts.length - 1].createdDate);
       }
@@ -59,35 +99,40 @@ const Main = () => {
     } finally {
       setLoading(false);
     }
-  }, [lastCreatedDate, searchKeyword, onSaleFilter, selectedCategoryId, hasNext, loading]);
-  
+  }, []);
+
   const handleSearch = () => {
-    setProducts([]);
-    setLastCreatedDate(null);
-    setHasNext(true);
+    if (searchKeyword === inputValue) return;
+    resetProducts();
+    setSearchKeyword(inputValue);
   };
 
-  const fetchProductsRef = useRef(fetchProducts);
-  useEffect(() => {
-    fetchProductsRef.current = fetchProducts;
-  }, [fetchProducts]);
+  const handleCategoryChange = (e) => {
+    resetProducts();
+    setSelectedCategoryId(e.target.value);
+  };
+
+  const handleOnSaleFilterChange = (e) => {
+    resetProducts();
+    setOnSaleFilter(e.target.checked);
+  };
 
   useEffect(() => {
-    fetchProductsRef.current();
-  }, []);
+    fetchProducts(true);
+  }, [fetchProducts, searchKeyword, selectedCategoryId, onSaleFilter]);
 
   const lastProductRef = useCallback((node) => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
-  
+
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasNext && !loading) {
-        fetchProductsRef.current();
+      if (entries[0].isIntersecting && stateRef.current.hasNext && !stateRef.current.loading) {
+        fetchProducts();
       }
     });
-  
+
     if (node) observer.current.observe(node);
-  }, [hasNext, loading]);
+  }, [fetchProducts, loading]);
 
   const handleProductClick = (productId) => navigate(`/product/${productId}`);
 
@@ -130,7 +175,7 @@ const Main = () => {
         <div className="search-filter-container">
 
           {/* 카테고리 선택 */}
-          <select value={selectedCategoryId} onChange={(e) => setSelectedCategoryId(e.target.value)}>
+          <select value={selectedCategoryId} onChange={handleCategoryChange}>
             <option value="">전체 카테고리</option>
             {CATEGORY_OPTIONS.map((category) => (
               <option key={category.value} value={category.value}>
@@ -144,8 +189,8 @@ const Main = () => {
             <input
               type="text"
               placeholder="상품명 검색"
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleSearch(); }}
             />
             <button
@@ -163,7 +208,7 @@ const Main = () => {
             <input
               type="checkbox"
               checked={onSaleFilter}
-              onChange={(e) => setOnSaleFilter(e.target.checked)}
+              onChange={handleOnSaleFilterChange}
             />
             구매 가능만 보기
           </label>
