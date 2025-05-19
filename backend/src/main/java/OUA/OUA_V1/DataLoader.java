@@ -97,10 +97,10 @@ public class DataLoader implements ApplicationRunner {
         );
 
         Product product = new Product(member2, "오데썽", "테스트용 상품입니다.", 100000,
-                150000, LocalDateTime.now().plusDays(7), ProductCategory.WOMEN_ACCESSORIES.getCategoryId(), dummyImageUrls);
+                150000, LocalDateTime.now().plusDays(7), ProductCategory.BEAUTY_CARE.getCategoryId(), dummyImageUrls);
 
         Product product2 = new Product(member3, "Mx Keys Mini", "테스트용 상품2입니다.", 80000,
-                140000, LocalDateTime.now().plusDays(2), ProductCategory.BEAUTY_CARE.getCategoryId(), dummyImageUrls2);
+                140000, LocalDateTime.now().plusDays(2), ProductCategory.DIGITAL_DEVICE.getCategoryId(), dummyImageUrls2);
 
         Product product3 = new Product(member4, "플랜룩스 무선 LED 스탠드 조명", "테스트용 상품3입니다.", 10000,
                 18000, LocalDateTime.now().plusDays(3), ProductCategory.HOME_APPLIANCE.getCategoryId(), dummyImageUrls3);
