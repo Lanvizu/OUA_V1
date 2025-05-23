@@ -39,6 +39,13 @@ public class OrdersService {
     }
 
     @Transactional
+    public Orders updateBuyNowOrder(Orders orders, Product product) {
+        orders.updateOrderPrice(product.getBuyNowPrice());
+        orders.confirmOrder();
+        return orderRepository.save(orders);
+    }
+
+    @Transactional
     public void failOtherOrders(Long productId, Long confirmedOrderId) {
         List<Orders> orders = orderRepository.findActiveOrdersByProductId(productId, confirmedOrderId);
         for (Orders order : orders) {
@@ -59,10 +66,14 @@ public class OrdersService {
                 .orElseThrow(OrderNotFoundException::new);
     }
 
-    public OrdersResponse getMyOrderForProduct(Long memberId, Long productId) {
-        return orderRepository.findByMemberIdAndProductId(memberId, productId)
+    public OrdersResponse findVisibleOrder(Long memberId, Long productId) {
+        return orderRepository.findVisibleOrder(memberId, productId)
                 .map(this::toOrdersResponse)
                 .orElse(null);
+    }
+    
+    public Optional<Orders> findActiveOrder(Long memberId, Long productId) {
+        return orderRepository.findActiveOrder(memberId, productId);
     }
 
     public Page<OrdersResponse> getProductOrders(Long productId, Pageable pageable) {

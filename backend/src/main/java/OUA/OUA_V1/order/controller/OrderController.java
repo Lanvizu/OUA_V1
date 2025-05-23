@@ -69,7 +69,7 @@ public class OrderController {
             @LoginMember Long memberId
     ) {
         long productOrdersCount =  ordersService.getCountByProductId(productId);
-        OrdersResponse myOrderForProduct = ordersService.getMyOrderForProduct(memberId, productId);
+        OrdersResponse myOrderForProduct = ordersService.findVisibleOrder(memberId, productId);
         return ResponseEntity.ok(new CountAndMyOrderResponse(myOrderForProduct, productOrdersCount));
     }
 

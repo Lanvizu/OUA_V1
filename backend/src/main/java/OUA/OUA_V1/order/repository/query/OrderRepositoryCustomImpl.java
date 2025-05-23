@@ -90,7 +90,23 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     }
 
     @Override
-    public Optional<Orders> findByMemberIdAndProductId(Long memberId, Long productId) {
+    public Optional<Orders> findVisibleOrder(Long memberId, Long productId) {
+        QOrders order = QOrders.orders;
+
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(order)
+                        .where(
+                                order.member.id.eq(memberId),
+                                order.product.id.eq(productId),
+                                order.status.ne(OrderStatus.CANCELED)
+                        )
+                        .fetchOne()
+        );
+    }
+
+    @Override
+    public Optional<Orders> findActiveOrder(Long memberId, Long productId) {
         QOrders order = QOrders.orders;
 
         return Optional.ofNullable(
