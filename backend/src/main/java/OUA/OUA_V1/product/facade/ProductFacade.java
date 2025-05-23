@@ -11,6 +11,8 @@ import OUA.OUA_V1.product.controller.request.ProductImagesRequest;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
 import OUA.OUA_V1.product.controller.response.ProductResponse;
 import OUA.OUA_V1.product.domain.Product;
+import OUA.OUA_V1.product.domain.ProductStatus;
+import OUA.OUA_V1.product.exception.badRequest.ProductAlreadyDeletedException;
 import OUA.OUA_V1.product.exception.badRequest.ProductDeletedException;
 import OUA.OUA_V1.product.exception.badRequest.ProductIllegalFileException;
 import OUA.OUA_V1.product.service.ProductService;
@@ -50,13 +52,19 @@ public class ProductFacade {
                 productId,
                 () -> {
                     Product product = productService.findById(productId);
+                    validateProductIsActive(product.getStatus());
+                    productService.deleteProduct(product);
                     ordersService.failAllByProductId(product.getId());
                     List<String> imageUrls = product.getImageUrls();
-                    deleteImages(imageUrls);
-                    productService.deleteProduct(product);
-                    return null;
+                    deleteImages(imageUrls); // 이미지 처리는 트랜잭션 외부로 옮겨야할까?
                 }
         );
+    }
+
+    private void validateProductIsActive(ProductStatus productStatus) {
+        if (productStatus != ProductStatus.ACTIVE) {
+            throw new ProductAlreadyDeletedException();
+        }
     }
 
     private void deleteImages(List<String> imageUrls) {
