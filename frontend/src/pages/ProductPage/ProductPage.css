@@ -204,7 +204,7 @@
   }
   
   .delete-button {
-      color:red
+      color:#e74c3c
   }
 
 .order-section {
@@ -233,14 +233,23 @@
   padding: 12px 10px;
   border-radius: 4px;
   font-weight: bold;
-  color: #2d6cdf;
+  /* color: #2d6cdf; */
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
+.winner-tag {
+  color: #2d6cdf;
+  padding: 4px 8px;
+}
+.loser-tag{
+  color: #e74c3c;
+  padding: 4px 8px;
+}
 .cancel-button {
   padding: 4px 10px;
-  background-color: #ff4d4f;
+  background-color: #e74c3c;
   color: white;
   border: none;
   border-radius: 4px;
@@ -249,7 +258,7 @@
 }
 
 .cancel-button:hover:not(:disabled) {
-  background-color: #ff7875;
+  background-color: #e74c3c;
 }
 
 .cancel-button:disabled {
@@ -264,7 +273,7 @@
 }
 
 .error {
-  color: #ff4d4f;
+  color: #e74c3c;
   padding: 8px;
 }
 .order-info-section{
@@ -372,7 +381,7 @@
 
 .buy-now-value {
   font-weight: bold;
-  color: #e60023;
+  color: #e74c3c;
   padding: 0px 10px;
 }
 
@@ -404,8 +413,8 @@
 
 .buy-now-button {
   background: #fff;
-  color: #ff2e4d;
-  border: 1.5px solid #ff2e4d;
+  color: #e74c3c;
+  border: 1.5px solid #e74c3c;
 }
 
 .buy-now-button:disabled {
@@ -422,7 +431,7 @@
 }
 
 .buy-now-button:hover:not(:disabled) {
-  background: #ff2e4d;
+  background: #e74c3c;
   color: #fff;
 }
 .order-button:hover:not(:disabled) {
@@ -433,7 +442,7 @@
 .delete-product-button {
   padding: 5px 10px;
   background-color: #fff;
-  color: #ff4d4f;
+  color: #e74c3c;
   border: none;
   cursor: pointer;
   border-radius: 4px;
@@ -444,7 +453,7 @@
 }
 
 .delete-product-button:hover {
-  background-color: #ff7875;
+  background-color: #e74c3c;
   color: white;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }

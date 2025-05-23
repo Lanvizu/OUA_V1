@@ -518,20 +518,41 @@ const ProductPage = () => {
               </div>
               {/* 내 주문 정보 표시 */}
               <div className="my-order-box">
-                {myOrder ? (
-                  <>
-                    <span>내 입찰가: {myOrder.orderPrice.toLocaleString()}원</span>
-                    <button
-                      onClick={product.status !== 'ACTIVE' ? undefined : handleCancelOrder}
-                      disabled={product.status !== 'ACTIVE' || cancelLoading}
-                      className="cancel-button"
-                    >
-                      {product.status !== 'ACTIVE' ? "취소 불가" : (cancelLoading ? '취소 중...' : '취소')}
-                    </button>
-                    {cancelError && <div className="error">{cancelError}</div>}
-                  </>
+                {product.status === 'ACTIVE' ? (
+                  product.isOwner ? (
+                    <span>상품 주인은 입찰할 수 없습니다</span>
+                  ) : myOrder ? (
+                    <>
+                      <span>내 입찰가: {myOrder.orderPrice.toLocaleString()}원</span>
+                      <button
+                        onClick={handleCancelOrder}
+                        disabled={cancelLoading}
+                        className="cancel-button"
+                      >
+                        {cancelLoading ? '취소 중...' : '취소'}
+                      </button>
+                      {cancelError && <div className="error">{cancelError}</div>}
+                    </>
+                  ) : (
+                    <span className="my-order-empty">현재 내 입찰 내역이 없습니다</span>
+                  )
+                ) : product.status === 'SOLD' ? (
+                  myOrder ? (
+                    <>
+                      <span>
+                        내 입찰가: {myOrder.orderPrice.toLocaleString()}원
+                      </span>
+                      {myOrder.orderPrice === product.highestOrderPrice ? (
+                        <span className="winner-tag"> 낙찰</span>
+                      ) : (
+                        <span className="loser-tag"> 패찰</span>
+                      )}
+                    </>
+                  ) : (
+                    <span>이미 판매가 종료된 상품입니다</span>
+                  )
                 ) : (
-                  <span className="my-order-empty">현재 내 입찰 내역이 없습니다</span>
+                  <span className="error">상품 상태 정보를 불러올 수 없습니다</span>
                 )}
               </div>
               <div className="button-group">

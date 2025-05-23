@@ -50,19 +50,29 @@ public class OrderFacade {
     @Transactional
     public Long buyNow(Long memberId, Long productId){
         return lockTemplate.executeWithLock(
-                productId,
-                () ->{
-                    Product product = productService.findById(productId);
-                    validateOwnProduct(memberId, product);
-                    validateProductIsActive(product);
-
+            productId,
+            () ->{
+                // 상품 주인 체크 & 상품 상태 체크
+                Product product = productService.findById(productId);
+                validateOwnProduct(memberId, product);
+                validateProductIsActive(product);
+                // 입찰자 이전 주문 체크 -> 존재하는 경우 해당 주문을 수정
+                Optional<Orders> existingOrderOpt = ordersService.findActiveOrder(memberId, productId);
+                Orders confirmedOrders;
+                if (existingOrderOpt.isPresent()) {
+                    // 상품 상태도 확인 필요 -> ㄴㄴ ACTIVE만 가져오도록 설정
+                    confirmedOrders = ordersService.updateBuyNowOrder(existingOrderOpt.get(), product);
+                } else {
                     Member member = memberService.findById(memberId);
-                    Orders confirmedOrders = ordersService.buyNowOrder(member, product);
-                    product.updateHighestOrder(confirmedOrders.getId(), confirmedOrders.getOrderPrice());
-                    ordersService.failOtherOrders(product.getId(), confirmedOrders.getId());
-                    product.soldAuction();
-                    return confirmedOrders.getId();
+                    confirmedOrders = ordersService.buyNowOrder(member, product);
                 }
+
+                // 이전 주문이 없는 경우 새로운 즉시 구매 주문을 생성
+                product.updateHighestOrder(confirmedOrders.getId(), confirmedOrders.getOrderPrice());
+                ordersService.failOtherOrders(product.getId(), confirmedOrders.getId());
+                product.soldAuction();
+                return confirmedOrders.getId();
+            }
         );
     }
 
