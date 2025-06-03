@@ -16,16 +16,11 @@ const ProductPage = () => {
   const [error, setError] = useState('');
   const [ordersError, setOrdersError] = useState('');
   const [cancelError, setCancelError] = useState('');
-  const [ordersModalError, setOrdersModalError] = useState('');
 
   const [orderPrice, setOrderPrice] = useState('');
-  const [orderCount, setOrderCount] = useState(0);
-  const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [myOrder, setMyOrder] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
 
-  const [ordersModalData, setOrdersModalData] = useState({ content: [], page: {} });
-  const [ordersModalPage, setOrdersModalPage] = useState(0);
 
   const [globalLoading, setGlobalLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
@@ -76,7 +71,7 @@ const ProductPage = () => {
 
   const getStatusMessage = (status) => {
     switch(status) {
-      case 'ENDED':
+      case 'UNSOLD':
         return '경매 종료';
       case 'SOLD':
         return '낙찰 완료';
@@ -215,10 +210,16 @@ const ProductPage = () => {
       const response = await fetch(`/v1/product/${productId}/orders`, {
         credentials: 'include',
       });
+
+      if (response.status === 204) {
+        setMyOrder(null); // 주문 정보 없음
+        return;
+      }
+
       if (!response.ok) throw new Error('주문 정보를 불러오는데 실패했습니다.');
+
       const data = await response.json();
-      setOrderCount(data.productOrdersCount);
-      setMyOrder(data.myOrder);
+      setMyOrder(data);
     } catch (err) {
       setOrdersError(err.message);
     } finally {
@@ -290,41 +291,6 @@ const ProductPage = () => {
     }
   };
 
-  const fetchOrderDetails = async (page = 0) => {
-    setOrdersModalError('');
-    setGlobalLoading(true);
-    setLoadingMessage('입찰 내역을 불러오는 중입니다...');
-    try {
-      const response = await fetch(`/v1/product/${productId}/orders/total?page=${page}&size=10`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('입찰 내역을 불러오는데 실패했습니다.');
-      const data = await response.json();
-      setOrdersModalData(data);
-      setOrdersModalPage(page);
-    } catch (err) {
-      setOrdersModalError(err.message);
-    } finally {
-      setGlobalLoading(false);
-    }
-  };
-
-  const handleShowOrdersModal = () => {
-    setShowOrdersModal(true);
-    fetchOrderDetails(0);
-  };
-
-  const handleCloseOrdersModal = () => {
-    setShowOrdersModal(false);
-    setOrdersModalData({ content: [], page: {} });
-    setOrdersModalError('');
-  };
-
-  const handleOrdersModalPageChange = (newPage) => {
-    fetchOrderDetails(newPage);
-  };
-  
-
   return (
     <div className="product-page">
       <LoadingOverlay show={globalLoading} message={loadingMessage} />
@@ -385,6 +351,16 @@ const ProductPage = () => {
                   {CATEGORY_OPTIONS.find((opt) => opt.value === product.categoryId)?.label ||
                     '알 수 없는 카테고리'}
                 </span>
+                {product.isOwner && (
+                  <div className="delete-section">
+                    <button 
+                      className="delete-product-button"
+                      onClick={handleDeleteProduct}
+                    >
+                      상품 삭제
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="price-section">
                 <div className="price-item">
@@ -421,104 +397,11 @@ const ProductPage = () => {
                   )}
                 </div>
               </div>
-
-              {/* 주문 정보 섹션 */}
-              <div className="order-info-section">
-                {ordersError ? (
-                  <div className="error">{ordersError}</div>
-                ) : (
-                  <>
-                    {/* 주문 수 및 상세 보기 버튼 */}
-                    <div className="order-summary">
-                      <span>총 입찰 건수: {orderCount}</span>
-                      {product.isOwner && (
-                        <button 
-                          onClick={handleShowOrdersModal}
-                          className="view-details-btn"
-                          disabled={orderCount === 0}
-                        >
-                          {orderCount > 0 ? '[입찰 기록]' : '입찰 없음'}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* 주문 모달 창 */}
-                    {showOrdersModal && (
-                      <div className="modal-overlay">
-                        <div className="modal">
-                          <div className="modal-header">
-                            <h3>상세 입찰 내역</h3>
-                            <button onClick={handleCloseOrdersModal} className="modal-close-btn">×</button>
-                          </div>
-                          {ordersModalError ? (
-                            <div className="error">{ordersModalError}</div>
-                          ) : (
-                            <>
-                              <table className="orders-table">
-                                <thead>
-                                  <tr>
-                                    <th>주문번호</th>
-                                    <th>입찰가</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {ordersModalData.content.length > 0 ? (
-                                    ordersModalData.content.map((order) => (
-                                      <tr key={order.orderId}>
-                                        <td>{order.orderId}</td>
-                                        <td>{order.orderPrice.toLocaleString()}원</td>
-                                      </tr>
-                                    ))
-                                  ) : (
-                                    <tr>
-                                      <td colSpan={3}>입찰 내역이 없습니다.</td>
-                                    </tr>
-                                  )}
-                                </tbody>
-                              </table>
-                              {/* 페이지네이션 */}
-                              <div className="modal-pagination">
-                                <button
-                                  onClick={() => handleOrdersModalPageChange(ordersModalPage - 1)}
-                                  disabled={ordersModalPage === 0}
-                                >
-                                  <img src={LeftArrowIcon} alt="이전" className="product-pagination-arrow" />
-                                </button>
-                                <span>
-                                  {ordersModalPage + 1} / {ordersModalData.page.totalPages || 1}
-                                </span>
-                                <button
-                                  onClick={() => handleOrdersModalPageChange(ordersModalPage + 1)}
-                                  disabled={
-                                    ordersModalData.page.totalPages
-                                      ? ordersModalPage + 1 >= ordersModalData.page.totalPages
-                                      : true
-                                  }
-                                >
-                                  <img src={RightArrowIcon} alt="다음" className="product-pagination-arrow" />
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-                {product.isOwner && (
-                  <div className="delete-section">
-                    <button 
-                      className="delete-product-button"
-                      onClick={handleDeleteProduct}
-                    >
-                      상품 삭제
-                    </button>
-                  </div>
-                )}
-              </div>
               {/* 내 주문 정보 표시 */}
               <div className="my-order-box">
-                {product.status === 'ACTIVE' ? (
+                {ordersError ? (
+                  <div className="error">{ordersError}</div>
+                ) : product.status === 'ACTIVE' ? (
                   product.isOwner ? (
                     <span>상품 주인은 입찰할 수 없습니다</span>
                   ) : myOrder ? (
@@ -549,8 +432,10 @@ const ProductPage = () => {
                       )}
                     </>
                   ) : (
-                    <span>이미 판매가 종료된 상품입니다</span>
+                    <span>이미 낙찰이 완료된 상품입니다</span>
                   )
+                ) : product.status === 'UNSOLD' ? (
+                  <span>경매가 종료된 상품입니다</span>
                 ) : (
                   <span className="error">상품 상태 정보를 불러올 수 없습니다</span>
                 )}
