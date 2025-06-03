@@ -162,7 +162,7 @@
    <details>
     <summary><h4>기존 락 해제 코드</h4></summary>
     
-    ```JAVA
+   ```JAVA
       package OUA.OUA_V1.global;
      
       import OUA.OUA_V1.auth.exception.ConcurrentAccessException;
@@ -214,7 +214,8 @@
               });
           }
       }
-    ```
+   ```
+    
    </details>
    
    ---
@@ -230,7 +231,8 @@
    <details>
     <summary><h4>개선 락 해제 코드</h4></summary>
     
-    ```JAVA
+   ```JAVA
+    
       package OUA.OUA_V1.global;
 
       import OUA.OUA_V1.auth.exception.ConcurrentAccessException;
@@ -296,8 +298,9 @@
           }
       }
 
-    ```
+   ```
    </details>
+   
    ---
    
    ### 📊 개선 결과
