@@ -135,6 +135,8 @@
 
   * 트랜잭션 경계 내에서 **안정적인 동시성 제어 확보**
   * 커밋 이후 락이 해제되어, **다른 쓰레드의 작업이 안전하게 처리됨**
+
+   > [동시성 이슈 락 고민](https://github.com/Lanvizu/TIL/blob/main/%EA%B8%B0%ED%83%80/%EB%8F%99%EC%8B%9C%EC%84%B1_%EC%9D%B4%EC%8A%88.md)
     
  <details>
    <summary><h4>개선 과정</h4></summary>
