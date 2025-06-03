@@ -6,19 +6,13 @@ import OUA.OUA_V1.global.LoginProfile;
 import OUA.OUA_V1.order.controller.request.OrderRequest;
 import OUA.OUA_V1.order.controller.response.MyOrdersResponse;
 import OUA.OUA_V1.order.controller.response.OrdersResponse;
-import OUA.OUA_V1.order.controller.response.CountAndMyOrderResponse;
 import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.order.facade.OrderFacade;
 import OUA.OUA_V1.order.service.OrdersService;
 import OUA.OUA_V1.product.controller.response.SlicedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,25 +46,17 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    // 상품에 대한 전체 주문 조회
-    @GetMapping("/product/{productId}/orders/total")
-    public ResponseEntity<PagedModel<OrdersResponse>> getProductOrders(
-            @PathVariable Long productId,
-            @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
-        Page<OrdersResponse> productOrders = ordersService.getProductOrders(productId, pageable);
-        return ResponseEntity.ok(new PagedModel<>(productOrders));
-    }
-
     // 상품 페이지 로딩
     @GetMapping("/product/{productId}/orders")
-    public ResponseEntity<CountAndMyOrderResponse> getMyOrderAndOrdersCount(
+    public ResponseEntity<OrdersResponse> getMyOrderAndOrdersCount(
             @PathVariable Long productId,
             @LoginMember Long memberId
     ) {
-        long productOrdersCount =  ordersService.getCountByProductId(productId);
         OrdersResponse myOrderForProduct = ordersService.findVisibleOrder(memberId, productId);
-        return ResponseEntity.ok(new CountAndMyOrderResponse(myOrderForProduct, productOrdersCount));
+        if (myOrderForProduct == null) {
+            return ResponseEntity.noContent().build(); // HTTP 204
+        }
+        return ResponseEntity.ok(myOrderForProduct);
     }
 
     @GetMapping("/my-orders")
