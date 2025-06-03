@@ -21,20 +21,6 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public long countByProductId(Long productId) {
-        QOrders order = QOrders.orders;
-        Long count = queryFactory
-                .select(order.count())
-                .from(order)
-                .where(
-                        order.product.id.eq(productId),
-                        order.status.ne(OrderStatus.CANCELED)
-                )
-                .fetchOne();
-        return count != null ? count: 0L;
-    }
-
-    @Override
     public Slice<Orders> findByMemberIdWithKeySet(Long memberId, LocalDateTime lastCreatedDate, int size) {
         QOrders order = QOrders.orders;
 
@@ -61,32 +47,6 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
         }
 
         return new SliceImpl<>(orders, PageRequest.of(0, size), hasNext);
-    }
-
-    @Override
-    public Page<Orders> findAllByProductIdWithPageable(Long productId, Pageable pageable) {
-        QOrders order = QOrders.orders;
-
-        List<Orders> orders = queryFactory
-                .selectFrom(order)
-                .where(
-                        order.product.id.eq(productId),
-                        order.status.ne(OrderStatus.CANCELED)
-                )
-                .orderBy(order.createdDate.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        Long totalCount = Optional.ofNullable(
-                queryFactory
-                        .select(order.count())
-                        .from(order)
-                        .where(order.product.id.eq(productId))
-                        .fetchOne()
-        ).orElse(0L);
-
-        return new PageImpl<>(orders, pageable, totalCount);
     }
 
     @Override

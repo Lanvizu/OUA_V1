@@ -13,10 +13,8 @@ import java.util.Optional;
 public interface OrderRepositoryCustom {
 
     Slice<Orders> findByMemberIdWithKeySet(Long memberId, LocalDateTime localDateTime, int size);
-    Page<Orders> findAllByProductIdWithPageable(Long productId, Pageable pageable);
     Optional<Orders> findVisibleOrder(Long memberId, Long productId);
     Optional<Orders> findActiveOrder(Long memberId, Long productId);
-    long countByProductId(Long productId);
     Optional<Orders> findTopActiveByProductId(Long productId);
     List<Orders> findActiveOrdersByProductId(Long productId, @Nullable Long excludeOrderId);
 }

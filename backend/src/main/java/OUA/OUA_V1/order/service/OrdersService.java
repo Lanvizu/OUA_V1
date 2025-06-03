@@ -8,8 +8,6 @@ import OUA.OUA_V1.order.exception.OrderNotFoundException;
 import OUA.OUA_V1.order.repository.OrderRepository;
 import OUA.OUA_V1.product.domain.Product;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,15 +72,6 @@ public class OrdersService {
     
     public Optional<Orders> findActiveOrder(Long memberId, Long productId) {
         return orderRepository.findActiveOrder(memberId, productId);
-    }
-
-    public Page<OrdersResponse> getProductOrders(Long productId, Pageable pageable) {
-        return orderRepository.findAllByProductIdWithPageable(productId, pageable)
-                .map(this::toOrdersResponse);
-    }
-
-    public long getCountByProductId(Long productId) {
-        return orderRepository.countByProductId(productId);
     }
 
     public Slice<MyOrdersResponse> findByMemberIdWithKeySet(Long memberId, LocalDateTime lastCreatedDate,
