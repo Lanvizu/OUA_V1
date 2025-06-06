@@ -1,11 +1,14 @@
 package OUA.OUA_V1.order.facade;
 
 import OUA.OUA_V1.advice.badRequest.OrderPriceException;
-import OUA.OUA_V1.global.RedisLockTemplate;
+import OUA.OUA_V1.global.JvmLockTemplate;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.service.MemberService;
 import OUA.OUA_V1.order.controller.request.OrderRequest;
+import OUA.OUA_V1.order.controller.response.OrdersResponse;
 import OUA.OUA_V1.order.domain.Orders;
+import OUA.OUA_V1.order.exception.OrderNotFoundException;
+import OUA.OUA_V1.order.exception.badRequest.OrderAlreadyExistsException;
 import OUA.OUA_V1.order.exception.badRequest.OrderOnOwnProductException;
 import OUA.OUA_V1.order.service.OrdersService;
 import OUA.OUA_V1.product.domain.Product;
@@ -27,7 +30,7 @@ public class OrderFacade {
     private final OrdersService ordersService;
     private final MemberService memberService;
     private final ProductService productService;
-    private final RedisLockTemplate lockTemplate;
+    private final JvmLockTemplate lockTemplate;
 
     @Transactional
     public Long create(Long memberId, Long productId, OrderRequest request) {
@@ -37,6 +40,7 @@ public class OrderFacade {
                     Product product = productService.findById(productId);
                     validateOwnProduct(memberId, product);
                     validateProductIsActive(product); // onSale과 현재 입찰 시간을 판단하는 기능 추가.
+                    validateNotExistingOrder(memberId, productId);
                     validateOrderPrice(product, request.orderPrice());
 
                     Member member = memberService.findById(memberId);
@@ -77,14 +81,22 @@ public class OrderFacade {
     }
 
     @Transactional
-    public void cancel(Long productId, Long orderId) {
-        // 추후 최고 입찰가인 경우에만 분산락 적용되도록 변경 필요
+    public void cancel(Long memberId, Long productId, Long orderId) {
         lockTemplate.executeWithLock(
             productId,
             ()->{
                 Product product = productService.findById(productId);
-                Orders orders = ordersService.findById(orderId);
-                ordersService.cancelOrder(orders);
+                // 상품 상태 체크
+                validateProductIsActive(product);
+
+                // 유효한 주문인지 체크 -> 주문이 ACTIVE인 경우에만 가능하도록
+                Optional<Orders> activeOrder = ordersService.findActiveOrder(memberId, productId);
+                if(activeOrder.isEmpty()) {
+                    throw new OrderNotFoundException();
+                }
+                ordersService.cancelOrder(activeOrder.get());
+
+                // 최고 입찰가인 경우 다음 최고 입찰가로 업데이트.
                 if (product.isHighestOrder(orderId)) {
                     Optional<Orders> highestOrder = ordersService.findHighestOrder(product.getId());
                     highestOrder.ifPresentOrElse(
@@ -92,6 +104,7 @@ public class OrderFacade {
                             product::resetHighestOrder
                     );
                 }
+                return null;
             }
         );
     }
@@ -109,6 +122,7 @@ public class OrderFacade {
 
                     orders.updateOrderPrice(request.orderPrice());
                     product.updateHighestOrder(orders.getId(), orders.getOrderPrice());
+                    return null;
                 }
         );
     }
@@ -132,6 +146,13 @@ public class OrderFacade {
     private void validateProductIsActive(Product product) {
         if (!product.getStatus().equals(ProductStatus.ACTIVE) || product.getEndDate().isBefore(LocalDateTime.now())) {
             throw new ProductClosedException();
+        }
+    }
+
+    private void validateNotExistingOrder(Long memberId, Long productId) {
+        OrdersResponse myOrderForProduct = ordersService.findVisibleOrder(productId, memberId);
+        if(myOrderForProduct != null){
+            throw new OrderAlreadyExistsException();
         }
     }
 }

@@ -3,8 +3,10 @@ package OUA.OUA_V1.order.service;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.order.controller.response.MyOrdersResponse;
 import OUA.OUA_V1.order.controller.response.OrdersResponse;
+import OUA.OUA_V1.order.domain.OrderStatus;
 import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.order.exception.OrderNotFoundException;
+import OUA.OUA_V1.order.exception.badRequest.OrderNotActiveException;
 import OUA.OUA_V1.order.repository.OrderRepository;
 import OUA.OUA_V1.product.domain.Product;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,7 @@ public class OrdersService {
         return orderRepository.save(orders);
     }
 
+    // 즉시 주문 || 경매 종료 시 다른 주문들 탈락 처리
     @Transactional
     public void failOtherOrders(Long productId, Long confirmedOrderId) {
         List<Orders> orders = orderRepository.findActiveOrdersByProductId(productId, confirmedOrderId);
@@ -51,6 +54,7 @@ public class OrdersService {
         }
     }
 
+    // 상품 삭제 시 모든 주문 탈락 처리
     @Transactional
     public void failAllByProductId(Long productId){
         List<Orders> orders = orderRepository.findActiveOrdersByProductId(productId, null);
@@ -102,6 +106,9 @@ public class OrdersService {
 
     @Transactional
     public void cancelOrder(Orders orders) {
+        if (orders.getStatus() != OrderStatus.ACTIVE) {
+            throw new OrderNotActiveException();
+        }
         orders.cancel();
         orders.markAsDeleted();
     }
