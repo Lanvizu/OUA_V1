@@ -76,7 +76,7 @@ public class OrderController {
             @PathVariable("orderId") Long orderId,
             LoginProfile loginProfile
     ) {
-        orderFacade.cancel(productId, orderId);
+        orderFacade.cancel(loginProfile.memberId(), productId, orderId);
         return ResponseEntity.noContent().build();
     }
 

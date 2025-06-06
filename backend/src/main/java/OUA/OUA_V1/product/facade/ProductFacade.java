@@ -1,6 +1,6 @@
 package OUA.OUA_V1.product.facade;
 
-import OUA.OUA_V1.global.RedisLockTemplate;
+import OUA.OUA_V1.global.JvmLockTemplate;
 import OUA.OUA_V1.global.service.GcpStorageService;
 import OUA.OUA_V1.global.service.RedisService;
 import OUA.OUA_V1.member.domain.Member;
@@ -33,7 +33,7 @@ public class ProductFacade {
     private final ProductService productService;
     private final MemberService memberService;
     private final GcpStorageService gcpStorageService;
-    private final RedisLockTemplate lockTemplate;
+    private final JvmLockTemplate lockTemplate;
     private final RedisService redisService;
     private final OrdersService ordersService;
 
@@ -57,6 +57,7 @@ public class ProductFacade {
                     ordersService.failAllByProductId(product.getId());
                     List<String> imageUrls = product.getImageUrls();
                     deleteImages(imageUrls); // 이미지 처리는 트랜잭션 외부로 옮겨야할까?
+                    return null;
                 }
         );
     }
@@ -128,6 +129,7 @@ public class ProductFacade {
                     }else {
                         product.unSoldAuction();
                     }
+                    return null;
                 }
         );
     }
