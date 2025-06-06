@@ -131,15 +131,15 @@
 
 ---
 
-### 🔒 상품 상태 변경 시 동시성 제어 (Redis Lock + 트랜잭션 커밋 후 해제)
+### 🔒 상품 상태 변경 시 동시성 제어 (ReentrantLock + 트랜잭션 커밋 후 해제)
 
   * 트랜잭션 경계 내에서 **안정적인 동시성 제어 확보**
   * 커밋 이후 락이 해제되어, **다른 쓰레드의 작업이 안전하게 처리됨**
 
    > [동시성 이슈 락 고민](https://github.com/Lanvizu/TIL/blob/main/%EA%B8%B0%ED%83%80/%EB%8F%99%EC%8B%9C%EC%84%B1_%EC%9D%B4%EC%8A%88.md)
-    
- <details>
-   <summary><h4>개선 과정</h4></summary>
+
+  <details>
+   <summary><h4>개선 과정 1 (Redis 분산락)</h4></summary>
 
    ### 📍 개선 목적
 
@@ -310,7 +310,93 @@
    ![Image](https://github.com/user-attachments/assets/3dfd4122-68ed-45b8-904f-5048299ff87a)
  
  </details>
- 
+
+<details>
+   <summary><h4>개선 과정 2 (ReentrantLock)</h4></summary>
+
+   ### 📍 개선 목적   
+
+   현재 프로젝트는 단일 AWS 서버를 통해서 배포가 진행되므로 Redis 분산락은 오버 엔지니어링이라고 판단했습니다.
+
+   Redis 분산락은 주로 다중 서버에서 사용하며 네트워크 I/O의 외부의존성, Redis 장애 시 발생하는 문제점 등을 생각했습니다.
+
+   따라서 메모리 상에서 동작하며, 동일 JVM 내에서는 매우 빠르고 안정적인 락을 제공하는 ReentrantLock으로 개선했습니다.
+
+   <details>
+    <summary><h4>ReentrantLock 코드</h4></summary>
+
+   ```java
+
+   package OUA.OUA_V1.global;
+
+   import OUA.OUA_V1.auth.exception.ConcurrentAccessException;
+   import lombok.RequiredArgsConstructor;
+   import org.springframework.stereotype.Component;
+   import org.springframework.transaction.support.TransactionSynchronization;
+   import org.springframework.transaction.support.TransactionSynchronizationManager;
+   
+   import java.util.concurrent.locks.ReentrantLock;
+   import java.util.function.Supplier;
+   
+   @Component
+   @RequiredArgsConstructor
+   public class JvmLockTemplate {
+   
+       private final ProductLockManager lockManager;
+   public <T> T executeWithLock(Long productId, Supplier<T> action) {
+       ReentrantLock lock = lockManager.getLock(productId);
+       boolean acquired = false;
+   
+       try {
+           acquired = lock.tryLock();
+           if (!acquired) {
+               throw new ConcurrentAccessException();
+           }
+   
+   
+           // 락 해제를 트랜잭션 커밋 후로 지연
+           if (TransactionSynchronizationManager.isSynchronizationActive()) {
+               TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                   @Override
+                   public void afterCommit() {
+                       lock.unlock();
+                   }
+   
+                   @Override
+                   public void afterCompletion(int status) {
+                       // 트랜잭션 롤백 시 unlock 처리 (누수 방지)
+                       if (status != STATUS_COMMITTED) {
+                           lock.unlock();
+                       }
+                   }
+               });
+           } else {
+               // 트랜잭션 없을 경우 즉시 해제
+               return runAndUnlock(action, lock);
+           }
+   
+           return action.get();
+       } catch (RuntimeException e) {
+           if (acquired) {
+               lock.unlock();
+           }
+           throw e;
+       }
+   }
+   
+       private <T> T runAndUnlock(Supplier<T> action, ReentrantLock lock) {
+           try {
+               return action.get();
+           } finally {
+               lock.unlock();
+           }
+       }
+   }
+   ```
+   </details>
+   
+ </details>
+
 ---
 
 
