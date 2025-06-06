@@ -9,8 +9,8 @@
 
 ## 사용 기술
 ### JWT: 로그인 처리
-### REDIS: 이메일 인증 처리
-### REDIS: 분산 락을 통한 동시성 제어
+### REDIS: 이메일 인증 코드 처리
+### ReentrantLock을 통한 동시성 제어
 ### Github Action: CI/CD
 ### QueryDSL 동적 쿼리
 ### SSL/TLS: HTTPS 환경으로 배포
