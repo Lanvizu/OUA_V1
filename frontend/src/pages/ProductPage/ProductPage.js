@@ -5,6 +5,7 @@ import { CATEGORY_OPTIONS } from '../../constants/productCategoties';
 import RightArrowIcon from '../../assets/images/icon-right.png';
 import LeftArrowIcon from '../../assets/images/icon-left.png';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
+import updateArrowIcon from '../../assets/images/update-arrow.png';
 
 const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
 
@@ -291,6 +292,20 @@ const ProductPage = () => {
     }
   };
 
+  const handleProductStatusUpdate = async () => {
+    try {
+      const response = await fetch(`/v1/product/${productId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+      });
+  
+      if (!response.ok) throw new Error('상품 업데이트에 실패했습니다.');
+      window.location.reload();
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <div className="product-page">
       <LoadingOverlay show={globalLoading} message={loadingMessage} />
@@ -380,7 +395,16 @@ const ProductPage = () => {
 
               <div className="info-box">
                 <div className="info-item">
+                  <div className="info-item-label">
                   <span className="info-label">남은 시간</span>
+                    <button
+                      type="button"
+                      className="product-status-update-arrow"
+                      onClick={handleProductStatusUpdate}
+                    >
+                      <img src={updateArrowIcon} alt="상품 상태 업데이트" className="product-status-update-button" />
+                    </button>
+                  </div>
                   {product.status === 'ACTIVE' ? (
                     <div className="time-display">
                       <p className="info-value countdown">
