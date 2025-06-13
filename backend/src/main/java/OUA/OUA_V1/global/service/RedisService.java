@@ -7,8 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +15,6 @@ public class RedisService {
     private final RedisTemplate<String, String> redisTemplate;
     private static final String EMAIL_VERIFICATION_PREFIX = "email:verification:";
     private static final String EMAIL_LAST_SENT_PREFIX = "email:lastSent:";
-    public static final String AUCTION_EXPIRE_PREFIX = "auction:product:";
 
     /**
      * Store verification code with expiration time
@@ -58,28 +55,5 @@ public class RedisService {
     public void deleteVerificationCode(String email) {
         String key = EMAIL_VERIFICATION_PREFIX + email;
         redisTemplate.delete(key);
-    }
-
-    // 락 획득 시도
-    public String tryLock(String key, long expireMillis) {
-        String lockValue = UUID.randomUUID().toString();
-        Boolean success = redisTemplate.opsForValue()
-                .setIfAbsent(key, lockValue, expireMillis, TimeUnit.MILLISECONDS);
-        return Boolean.TRUE.equals(success) ? lockValue : null;
-    }
-
-    // 락 해제
-    public void releaseLock(String key, String lockValue) {
-        String currentValue = redisTemplate.opsForValue().get(key);
-        if (lockValue.equals(currentValue)) {
-            redisTemplate.delete(key);
-        }
-    }
-
-    public void setAuctionExpiration(Long productId, LocalDateTime endDate) {
-        long ttlSeconds = Duration.between(LocalDateTime.now(), endDate).getSeconds();
-        String key = AUCTION_EXPIRE_PREFIX + productId;
-        redisTemplate.opsForValue().set(key, "1", ttlSeconds, TimeUnit.SECONDS);
-        log.info("[Auction TTL] Product:{} | TTL:{}s", productId, ttlSeconds);
     }
 }

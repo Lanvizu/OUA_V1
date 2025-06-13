@@ -54,7 +54,7 @@ public class ProductController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastCreatedDate,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Slice<ProductPreviewResponse> products = productService.findByFiltersWithKeySet(keyword, onSale,categoryId, lastCreatedDate, size);
+        Slice<ProductPreviewResponse> products = productService.findByFiltersWithKeySet(keyword, onSale, categoryId, lastCreatedDate, size);
         return ResponseEntity.ok(new SlicedResponse<>(products.getContent(), products.hasNext()));
     }
 
@@ -73,5 +73,13 @@ public class ProductController {
             @LoginMember Long memberId) {
         Slice<ProductPreviewResponse> products = productService.findByMemberIdWithKeySet(memberId, lastCreatedDate, size);
         return ResponseEntity.ok(new SlicedResponse<>(products.getContent(), products.hasNext()));
+    }
+
+    // 수동 상품 정보 업데이트
+    @PatchMapping("/product/{productId}")
+    public ResponseEntity<Void> updateProduct(@PathVariable("productId") Long productId,
+                                              @LoginMember Long memberId) {
+        productFacade.finalizeAuctionIfExpired(productId);
+        return ResponseEntity.noContent().build();
     }
 }
