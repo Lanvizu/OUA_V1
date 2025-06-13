@@ -2,7 +2,6 @@ package OUA.OUA_V1.product.facade;
 
 import OUA.OUA_V1.global.JvmLockTemplate;
 import OUA.OUA_V1.global.service.GcpStorageService;
-import OUA.OUA_V1.global.service.RedisService;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.service.MemberService;
 import OUA.OUA_V1.order.domain.Orders;
@@ -21,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -34,7 +34,6 @@ public class ProductFacade {
     private final MemberService memberService;
     private final GcpStorageService gcpStorageService;
     private final JvmLockTemplate lockTemplate;
-    private final RedisService redisService;
     private final OrdersService ordersService;
 
     @Transactional
@@ -42,12 +41,11 @@ public class ProductFacade {
         Member member = memberService.findById(memberId);
         List<String> imageUrls = uploadImages(imagesRequest.images());
         Product product = productService.registerProduct(member, productRequest, imageUrls);
-        redisService.setAuctionExpiration(product.getId(), product.getEndDate());
         return product.getId();
     }
 
     @Transactional
-    public void deleteProduct(Long productId){
+    public void deleteProduct(Long productId) {
         lockTemplate.executeWithLock(
                 productId,
                 () -> {
@@ -100,6 +98,46 @@ public class ProductFacade {
         return toProductResponse(product, isOwner);
     }
 
+    @Transactional
+    public void finalizeExpiredAuctions() {
+        List<Product> expiredAuctions = productService.findExpiredActiveProducts(LocalDateTime.now());
+
+        for (Product product : expiredAuctions) {
+            lockTemplate.executeWithLock(product.getId(), () -> {
+                finalizeAuctionInternal(product);
+                return null;
+            });
+        }
+    }
+
+    @Transactional
+    public void finalizeAuctionIfExpired(Long productId) {
+        lockTemplate.executeWithLock(productId, () -> {
+            Product product = productService.findById(productId);
+
+            if (product.getStatus() != ProductStatus.ACTIVE) {
+                return null;
+            }
+            if (product.getEndDate().isAfter(LocalDateTime.now())) {
+                return null;
+            }
+
+            finalizeAuctionInternal(product);
+            return null;
+        });
+    }
+
+    private void finalizeAuctionInternal(Product product) {
+        if (product.getHighestOrderId() != null) {
+            Orders orders = ordersService.findById(product.getHighestOrderId());
+            orders.confirmOrder();
+            ordersService.failOtherOrders(product.getId(), orders.getId());
+            product.soldAuction();
+        } else {
+            product.unSoldAuction();
+        }
+    }
+
     private ProductResponse toProductResponse(Product product, boolean isOwner) {
         return new ProductResponse(
                 product.getId(),
@@ -112,25 +150,6 @@ public class ProductFacade {
                 product.getImageUrls(),
                 product.getStatus(),
                 isOwner
-        );
-    }
-
-    @Transactional
-    public void finalizeAuction(Long productId) {
-        lockTemplate.executeWithLock(
-                productId,
-                () -> {
-                    Product product = productService.findById(productId);
-                    if(product.getHighestOrderId() != null){
-                        Orders orders = ordersService.findById(product.getHighestOrderId());
-                        orders.confirmOrder();
-                        ordersService.failOtherOrders(product.getId(), orders.getId());
-                        product.soldAuction();
-                    }else {
-                        product.unSoldAuction();
-                    }
-                    return null;
-                }
         );
     }
 }
