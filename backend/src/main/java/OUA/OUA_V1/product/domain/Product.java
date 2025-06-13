@@ -96,7 +96,7 @@ public class Product extends BaseEntity implements SecureResource {
     }
 
     private void validateName(String name) {
-        if (name.isEmpty()) {
+        if (name == null || name.trim().isEmpty()) {
             throw new ProductNameBlankException();
         }
         if (name.length() < NAME_MIN_LENGTH || name.length() > NAME_MAX_LENGTH) {
@@ -107,11 +107,11 @@ public class Product extends BaseEntity implements SecureResource {
         }
     }
 
-    public void soldAuction(){
+    public void soldAuction() {
         this.status = ProductStatus.SOLD;
     }
 
-    public void unSoldAuction(){
+    public void unSoldAuction() {
         this.status = ProductStatus.UNSOLD;
     }
 
@@ -125,11 +125,11 @@ public class Product extends BaseEntity implements SecureResource {
         this.highestOrderPrice = this.initialPrice;
     }
 
-    public boolean isHighestOrder(Long orderId){
+    public boolean isHighestOrder(Long orderId) {
         return this.highestOrderId != null && this.highestOrderId.equals(orderId);
     }
 
-    public void cancel(){
+    public void cancel() {
         this.status = ProductStatus.CANCELED;
     }
 
