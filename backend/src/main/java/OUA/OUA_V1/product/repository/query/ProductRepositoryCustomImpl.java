@@ -83,4 +83,17 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
 
         return new SliceImpl<>(products, PageRequest.of(0, size), hasNext);
     }
+
+    @Override
+    public List<Product> findByEndTimeBeforeAndStatus(LocalDateTime endTime, ProductStatus status) {
+        QProduct product = QProduct.product;
+
+        return queryFactory
+                .selectFrom(product)
+                .where(
+                        product.status.eq(status),
+                        product.endDate.lt(endTime)
+                )
+                .fetch();
+    }
 }
