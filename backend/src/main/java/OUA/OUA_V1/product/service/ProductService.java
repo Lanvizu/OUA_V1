@@ -4,6 +4,7 @@ import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
 import OUA.OUA_V1.product.controller.response.ProductPreviewResponse;
 import OUA.OUA_V1.product.domain.Product;
+import OUA.OUA_V1.product.domain.ProductStatus;
 import OUA.OUA_V1.product.exception.ProductNotFoundException;
 import OUA.OUA_V1.product.exception.badRequest.ProductEndDateExceededException;
 import OUA.OUA_V1.product.repository.ProductRepository;
@@ -34,6 +35,10 @@ public class ProductService {
     public void deleteProduct(Product product) {
         product.cancel();
         product.markAsDeleted();
+    }
+
+    public List<Product> findExpiredActiveProducts(LocalDateTime now) {
+        return productRepository.findByEndTimeBeforeAndStatus(now, ProductStatus.ACTIVE);
     }
 
     private void validateEndDate(LocalDateTime endDate) {
