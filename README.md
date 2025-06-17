@@ -1,20 +1,42 @@
 # 온라인 중고 경매 프로젝트
 
+<img src="https://img.shields.io/badge/springboot-6DB33F?style=flat&logo=springboot&logoColor=white"> <img src="https://img.shields.io/badge/react-61DAFB?style=flat&logo=react&logoColor=black"> <img src="https://img.shields.io/badge/mysql-4479A1?style=flat&logo=mysql&logoColor=white"> <img src="https://img.shields.io/badge/Redis-FF4438?style=flat&logo=redis&logoColor=white"> <img src="https://img.shields.io/badge/nginx-009639?style=flat&logo=nginx&logoColor=white"> <img src="https://img.shields.io/badge/docker-2496ED?style=flat&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/Amazon%20EC2-FF9900?style=flat&logo=Amazon%20EC2&logoColor=white"> <img src="https://img.shields.io/badge/GitHubActions-2088FF?style=flat&logo=GitHubActions&logoColor=white">
+
+### 사용자 간 중고 상품의 등록, 입찰, 낙찰까지의 흐름을 지원하는 실시간 경매 플랫폼입니다.
+
 [OUA_V1](https://oua-v1.duckdns.org)
 
 > 현재 혼자 개발하며 공부중인 프로젝트 입니다.
 
-
-<img src="https://img.shields.io/badge/springboot-6DB33F?style=flat&logo=springboot&logoColor=white"> <img src="https://img.shields.io/badge/react-61DAFB?style=flat&logo=react&logoColor=black"> <img src="https://img.shields.io/badge/mysql-4479A1?style=flat&logo=mysql&logoColor=white"> <img src="https://img.shields.io/badge/Redis-FF4438?style=flat&logo=redis&logoColor=white"> <img src="https://img.shields.io/badge/nginx-009639?style=flat&logo=nginx&logoColor=white"> <img src="https://img.shields.io/badge/docker-2496ED?style=flat&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/Amazon%20EC2-FF9900?style=flat&logo=Amazon%20EC2&logoColor=white"> <img src="https://img.shields.io/badge/GitHubActions-2088FF?style=flat&logo=GitHubActions&logoColor=white">
-
 ## 사용 기술
-### JWT: 로그인 처리
-### REDIS: 이메일 인증 코드 처리
-### ReentrantLock을 통한 동시성 제어
-### Github Action: CI/CD
-### QueryDSL 동적 쿼리
-### SSL/TLS: HTTPS 환경으로 배포
 
+- **상품 검색 및 상세 페이지 구현**
+    
+    QueryDSL을 활용해 조건별 필터링, 키워드 검색을 포함한 유연한 상품 검색 기능을 구현했습니다.
+    
+    N+1 문제를 개선하기 위해 대표 이미지 URL을 별도 컬럼으로 분리해 조회 최적화를 수행해 전체 페이지 응답 속도를 약 35% 개선했습니다.
+    
+- **입찰 기능 및 동시성 제어**
+    
+    상품 단위로 경매 취소나 입찰이 동시에 발생할 수 있는 상황을 고려해 ReentrantLock을 적용해 Race Condition을 방지했습니다.
+    
+    JMeter를 활용한 동시성 테스트 과정에서 트랜잭션 커밋과 락 해제 사이의 간극으로 인해 발생하는 문제를 발견했고, 이를 TransactionSynchronizationManager를 사용해 커밋 이후 락이 해제되도록 조정하여 안정적인 동시성 처리를 구현했습니다.
+    
+- **회원가입 이메일 인증**
+    
+    인증 코드는 일시적이며 TTL이 필요한 데이터이므로, RDBMS보다 Redis와 같은 in-memory 저장소가 적합하다고 판단했습니다.
+    
+    또한, 이메일 인증 요청에 1분 제한을 두는 Rate Limiting 기능도 Redis의 TTL 기반 실시간 제어를 활용해 구현했습니다.
+    
+- **JWT 기반 사용자 인증 및 권한 제어**
+    
+    JWT 기반 인증/인가를 적용해 상품 CRUD 요청 시 사용자 인증 상태를 Stateless하게 처리하여 확장성과 보안성을 확보했습니다.
+    
+- **CI/CD 및 배포 자동화**
+    
+    GitHub Actions를 통해 백엔드와 프론트엔드의 테스트, 빌드, Docker 이미지 생성 및 EC2 배포 자동화 파이프라인을 구축했습니다.
+    
+    Let’s Encrypt 인증서를 자동 갱신 방식으로 적용해 Nginx와 연동했으며 HTTPS 기반으로 AWS EC2에 배포했습니다.
 
 ## ✅성능 개선
 
@@ -39,8 +61,6 @@
    기존의 상품 조회와 내 주문 조회 API는 페이지 수가 증가할수록 응답 속도 저하와 부하가 발생했고, 이미지 조회 방식과 상품 조회 방식에서도 불필요한 N+1 쿼리 문제로 인해 성능이 저하되고 있었습니다. 
    
    이를 해결하기 위해 **Keyset Pagination 도입**, **이미지 조회 방식 개선**, **페치 조인**을 통해 성능을 향상시켰습니다.
-   
-   ---
    
    ### 🔍 기존 문제점 분석
    
@@ -83,8 +103,6 @@
      select * from product where orders_id in (...);
    ```
    
-   ---
-   
    ### 🔧 개선 작업 요약
    
    | 개선 항목          | 조치 내용                                                       |
@@ -94,8 +112,6 @@
    | **이미지 조회 방식**  | `product_images` 테이블 조회 제거, `Product` 엔티티에 대표 이미지 URL 필드 추가 |
    | **데이터 전송량 감소** | 필요한 필드만 선택적으로 조회하여 응답 페이로드 축소                               |
    | **주문 조회 N+1 문제**  | 주문 → 상품 관계는 ToOne이므로 **Fetch Join**을 적용하여 단일 쿼리로 최적화 |
-   
-   ---
    
    ### 📊 성능 비교
  
@@ -149,8 +165,6 @@
 
    이를 해결하기 위해 `TransactionSynchronizationManager`를 도입하여, 트랜잭션 커밋 이후에만 락을 해제하도록 개선했습니다.
    
-   ---
-   
    ### 🔍 기존 문제점
 
    ![Image](https://github.com/user-attachments/assets/4990dc6a-f1f6-4c8e-8f21-9ed057f059ff)
@@ -161,67 +175,6 @@
    * 하지만 트랜잭션 커밋은 메서드 반환 이후 수행되므로, **락 해제가 너무 이르게 발생**.
    * 결과적으로 다른 트랜잭션이 **락을 선점하고 커밋되지 않은 데이터를 읽거나 변경**할 위험 존재.
    
-   <details>
-    <summary><h4>기존 락 해제 코드</h4></summary>
-    
-   ```JAVA
-      package OUA.OUA_V1.global;
-     
-      import OUA.OUA_V1.auth.exception.ConcurrentAccessException;
-      import OUA.OUA_V1.global.service.RedisService;
-      import lombok.RequiredArgsConstructor;
-      import lombok.extern.slf4j.Slf4j;
-      import org.springframework.stereotype.Component;
-      
-      import java.util.function.Supplier;
-      
-      @Component
-      @Slf4j
-      @RequiredArgsConstructor
-      public class RedisLockTemplate {
-          private static final long DEFAULT_EXPIRE_MILLIS = 5000;
-          private final RedisService redisService;
-          private static final String LOCK_KEY_PREFIX = "product:lock:";
-      
-          public <T> T executeWithLock(
-                  Long productId,
-                  Supplier<T> action
-          ) {
-              String lockKey = LOCK_KEY_PREFIX + productId;
-              String lockValue = redisService.tryLock(lockKey, DEFAULT_EXPIRE_MILLIS);
-      
-              if (lockValue == null) {
-                  log.warn("[LOCK FAIL] productId={}, thread={}, timestamp={}", productId, Thread.currentThread().getName(), System.currentTimeMillis());
-      
-                  throw new ConcurrentAccessException();
-              }
-              log.info("[LOCK ACQUIRED] productId={}, lockValue={}, thread={}, timestamp={}", productId, lockValue, Thread.currentThread().getName(), System.currentTimeMillis());
-      
-              try {
-                  return action.get();
-              } finally {
-                  redisService.releaseLock(lockKey, lockValue);
-                  log.info("[LOCK RELEASE] productId={}, lockValue={}, thread={}, timestamp={}", productId, lockValue, Thread.currentThread().getName(), System.currentTimeMillis());
-      
-              }
-          }
-      
-          public void executeWithLock(
-                  Long productId,
-                  Runnable action
-          ) {
-              executeWithLock(productId, () -> {
-                  action.run();
-                  return null;
-              });
-          }
-      }
-   ```
-    
-   </details>
-   
-   ---
-   
    ### 🔧 개선 작업
 
    | 개선 항목           | 조치 내용                                                   |
@@ -229,81 +182,6 @@
    | **락 해제 시점 조정**  | `TransactionSynchronizationManager`의 `afterCommit()` 사용 |
    | **트랜잭션 유무 확인**  | 트랜잭션 미존재 시 즉시 락 해제, 존재 시 커밋 후 해제                        |
    | **예외 상황 처리 보완** | 런타임 예외 발생 시에도 안전하게 락 해제                                 |
-   
-   <details>
-    <summary><h4>개선 락 해제 코드</h4></summary>
-    
-   ```JAVA
-    
-      package OUA.OUA_V1.global;
-
-      import OUA.OUA_V1.auth.exception.ConcurrentAccessException;
-      import OUA.OUA_V1.global.service.RedisService;
-      import lombok.RequiredArgsConstructor;
-      import lombok.extern.slf4j.Slf4j;
-      import org.springframework.stereotype.Component;
-      import org.springframework.transaction.support.TransactionSynchronization;
-      import org.springframework.transaction.support.TransactionSynchronizationManager;
-      
-      import java.util.function.Supplier;
-      
-      @Component
-      @Slf4j
-      @RequiredArgsConstructor
-      public class RedisLockTemplate {
-          private static final long DEFAULT_EXPIRE_MILLIS = 5000;
-          private final RedisService redisService;
-          private static final String LOCK_KEY_PREFIX = "product:lock:";
-      
-          public <T> T executeWithLock(Long productId, Supplier<T> action) {
-              String lockKey = LOCK_KEY_PREFIX + productId;
-              String lockValue = redisService.tryLock(lockKey, DEFAULT_EXPIRE_MILLIS);
-      
-              if (lockValue == null) {
-                  log.warn("[LOCK FAIL] productId={}, thread={}, timestamp={}", productId, Thread.currentThread().getName(), System.currentTimeMillis());
-                  throw new ConcurrentAccessException();
-              }
-      
-              log.info("[LOCK ACQUIRED] productId={}, lockValue={}, thread={}, timestamp={}", productId, lockValue, Thread.currentThread().getName(), System.currentTimeMillis());
-      
-              try {
-                  if (TransactionSynchronizationManager.isSynchronizationActive()) {
-                      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                          @Override
-                          public void afterCommit() {
-                              redisService.releaseLock(lockKey, lockValue);
-                              log.info("[LOCK RELEASE afterCommit] productId={}, lockValue={}, thread={}, timestamp={}", productId, lockValue, Thread.currentThread().getName(), System.currentTimeMillis());
-                          }
-                      });
-                  } else {
-                      redisService.releaseLock(lockKey, lockValue);
-                      log.info("[LOCK RELEASE immediately] productId={}, lockValue={}, thread={}, timestamp={}", productId, lockValue, Thread.currentThread().getName(), System.currentTimeMillis());
-                  }
-      
-                  return action.get();
-      
-              } catch (RuntimeException e) {
-                  redisService.releaseLock(lockKey, lockValue);
-                  log.info("[LOCK RELEASE onError] productId={}, lockValue={}, thread={}, timestamp={}", productId, lockValue, Thread.currentThread().getName(), System.currentTimeMillis());
-                  throw e;
-              }
-          }
-      
-          public void executeWithLock(
-                  Long productId,
-                  Runnable action
-          ) {
-              executeWithLock(productId, () -> {
-                  action.run();
-                  return null;
-              });
-          }
-      }
-
-   ```
-   </details>
-   
-   ---
    
    ### 📊 개선 결과
 
