@@ -54,13 +54,27 @@ public class OrdersService {
         }
     }
 
+    @Transactional
+    public void confirmOrderFailOthers(Long productId, Orders orders) {
+        orders.confirmOrder();
+        List<Orders> activeOtherOrders = orderRepository.findActiveOrdersByProductId(productId, orders.getId());
+        for (Orders order : activeOtherOrders) {
+            order.markAsFailed();
+        }
+    }
+
     // 상품 삭제 시 모든 주문 탈락 처리
     @Transactional
-    public void failAllByProductId(Long productId){
+    public void failAllByProductId(Long productId) {
         List<Orders> orders = orderRepository.findActiveOrdersByProductId(productId, null);
         for (Orders order : orders) {
             order.markAsFailed();
         }
+    }
+
+    @Transactional
+    public void updateOrderPrice(Orders orders, int orderPrice) {
+        orders.updateOrderPrice(orderPrice);
     }
 
     public Orders findById(Long orderId) {
@@ -73,7 +87,7 @@ public class OrdersService {
                 .map(this::toOrdersResponse)
                 .orElse(null);
     }
-    
+
     public Optional<Orders> findActiveOrder(Long memberId, Long productId) {
         return orderRepository.findActiveOrder(memberId, productId);
     }
