@@ -17,13 +17,11 @@ import OUA.OUA_V1.product.exception.badRequest.ProductClosedException;
 import OUA.OUA_V1.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class OrderFacade {
 
@@ -32,26 +30,22 @@ public class OrderFacade {
     private final ProductService productService;
     private final JvmLockTemplate lockTemplate;
 
-    @Transactional
+    // 락 해제 시점을 트랜잭션 커밋 이후로 고정하기 위해 트랜잭션 어노테이션 제거.
     public Long create(Long memberId, Long productId, OrderRequest request) {
-        return lockTemplate.executeWithLock(
-                productId,
-                () -> {
-                    Product product = productService.findById(productId);
-                    validateOwnProduct(memberId, product);
-                    validateProductIsActive(product); // onSale과 현재 입찰 시간을 판단하는 기능 추가.
-                    validateNotExistingOrder(memberId, productId);
-                    validateOrderPrice(product, request.orderPrice());
+        return lockTemplate.executeWithLock(productId, () -> {
+            Product product = productService.findById(productId);
+            validateOwnProduct(memberId, product);
+            validateProductIsActive(product);
+            validateNotExistingOrder(memberId, productId);
+            validateOrderPrice(product, request.orderPrice());
 
-                    Member member = memberService.findById(memberId);
-                    Orders orders = ordersService.createOrder(member, product, request.orderPrice());
-                    product.updateHighestOrder(orders.getId(), orders.getOrderPrice());
-                    return orders.getId();
-                }
-        );
+            Member member = memberService.findById(memberId);
+            Orders orders = ordersService.createOrder(member, product, request.orderPrice());
+            productService.updateHighestOrder(product, orders.getId(), orders.getOrderPrice());
+            return orders.getId();
+        });
     }
 
-    @Transactional
     public Long buyNow(Long memberId, Long productId) {
         return lockTemplate.executeWithLock(
                 productId,
@@ -70,17 +64,15 @@ public class OrderFacade {
                         Member member = memberService.findById(memberId);
                         confirmedOrders = ordersService.buyNowOrder(member, product);
                     }
-
                     // 이전 주문이 없는 경우 새로운 즉시 구매 주문을 생성
-                    product.updateHighestOrder(confirmedOrders.getId(), confirmedOrders.getOrderPrice());
+                    // 경매 종료 + 최고 입찰가 업데이트
+                    productService.soldOutAndUpdateOrder(product, confirmedOrders.getId(), confirmedOrders.getOrderPrice());
                     ordersService.failOtherOrders(product.getId(), confirmedOrders.getId());
-                    product.soldAuction();
                     return confirmedOrders.getId();
                 }
         );
     }
 
-    @Transactional
     public void cancel(Long memberId, Long productId, Long orderId) {
         lockTemplate.executeWithLock(
                 productId,
@@ -94,14 +86,15 @@ public class OrderFacade {
                     if (activeOrder.isEmpty()) {
                         throw new OrderNotFoundException();
                     }
+                    // 해당 메서드 내의 트랜잭션 커밋이 끝나고 최신 상태에서 조회 가능
                     ordersService.cancelOrder(activeOrder.get());
 
                     // 최고 입찰가인 경우 다음 최고 입찰가로 업데이트.
                     if (product.isHighestOrder(orderId)) {
                         Optional<Orders> highestOrder = ordersService.findHighestOrder(product.getId());
                         highestOrder.ifPresentOrElse(
-                                h -> product.updateHighestOrder(h.getId(), h.getOrderPrice()),
-                                product::resetHighestOrder
+                                h -> productService.updateHighestOrder(product, h.getId(), h.getOrderPrice()),
+                                () -> productService.resetHighestOrder(product)
                         );
                     }
                     return null;
@@ -109,7 +102,6 @@ public class OrderFacade {
         );
     }
 
-    @Transactional
     public void updatePrice(Long productId, Long orderId, OrderRequest request) {
         lockTemplate.executeWithLock(
                 productId,
@@ -120,8 +112,8 @@ public class OrderFacade {
                     validateProductIsActive(product);
                     validateOrderPrice(product, request.orderPrice());
 
-                    orders.updateOrderPrice(request.orderPrice());
-                    product.updateHighestOrder(orders.getId(), orders.getOrderPrice());
+                    ordersService.updateOrderPrice(orders, request.orderPrice());
+                    productService.updateHighestOrder(product, orders.getId(), orders.getOrderPrice());
                     return null;
                 }
         );

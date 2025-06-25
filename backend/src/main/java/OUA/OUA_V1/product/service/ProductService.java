@@ -37,6 +37,31 @@ public class ProductService {
         product.markAsDeleted();
     }
 
+    @Transactional
+    public void updateHighestOrder(Product product, Long orderId, int orderPrice) {
+        product.updateHighestOrder(orderId, orderPrice);
+    }
+
+    @Transactional
+    public void resetHighestOrder(Product product) {
+        product.resetHighestOrder();
+    }
+
+    @Transactional
+    public void soldOutAndUpdateOrder(Product product, Long orderId, int orderPrice) {
+        product.updateHighestOrder(orderId, orderPrice);
+        product.soldAuction();
+    }
+
+    @Transactional
+    public void soldOutProduct(Product product, boolean isSoldOut) {
+        if (isSoldOut) {
+            product.soldAuction();
+        } else {
+            product.unSoldAuction();
+        }
+    }
+
     public List<Product> findExpiredActiveProducts(LocalDateTime now) {
         return productRepository.findByEndTimeBeforeAndStatus(now, ProductStatus.ACTIVE);
     }

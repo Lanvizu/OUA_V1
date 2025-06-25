@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ProductFacade {
 
@@ -44,7 +43,6 @@ public class ProductFacade {
         return product.getId();
     }
 
-    @Transactional
     public void deleteProduct(Long productId) {
         lockTemplate.executeWithLock(
                 productId,
@@ -53,8 +51,7 @@ public class ProductFacade {
                     validateProductIsActive(product.getStatus());
                     productService.deleteProduct(product);
                     ordersService.failAllByProductId(product.getId());
-                    List<String> imageUrls = product.getImageUrls();
-                    deleteImages(imageUrls); // 이미지 처리는 트랜잭션 외부로 옮겨야할까?
+                    deleteImages(product.getImageUrls());
                     return null;
                 }
         );
@@ -89,6 +86,7 @@ public class ProductFacade {
         return gcpStorageService.uploadImage(file);
     }
 
+    @Transactional(readOnly = true)
     public ProductResponse getProductWithOwnershipCheck(Long productId, Long memberId) {
         Product product = productService.findById(productId);
         if (product.isDeleted()) {
@@ -98,10 +96,8 @@ public class ProductFacade {
         return toProductResponse(product, isOwner);
     }
 
-    @Transactional
     public void finalizeExpiredAuctions() {
         List<Product> expiredAuctions = productService.findExpiredActiveProducts(LocalDateTime.now());
-
         for (Product product : expiredAuctions) {
             lockTemplate.executeWithLock(product.getId(), () -> {
                 finalizeAuctionInternal(product);
@@ -110,18 +106,15 @@ public class ProductFacade {
         }
     }
 
-    @Transactional
     public void finalizeAuctionIfExpired(Long productId) {
         lockTemplate.executeWithLock(productId, () -> {
             Product product = productService.findById(productId);
-
             if (product.getStatus() != ProductStatus.ACTIVE) {
                 return null;
             }
             if (product.getEndDate().isAfter(LocalDateTime.now())) {
                 return null;
             }
-
             finalizeAuctionInternal(product);
             return null;
         });
@@ -130,11 +123,10 @@ public class ProductFacade {
     private void finalizeAuctionInternal(Product product) {
         if (product.getHighestOrderId() != null) {
             Orders orders = ordersService.findById(product.getHighestOrderId());
-            orders.confirmOrder();
-            ordersService.failOtherOrders(product.getId(), orders.getId());
-            product.soldAuction();
+            ordersService.confirmOrderFailOthers(product.getId(), orders);
+            productService.soldOutProduct(product, true);
         } else {
-            product.unSoldAuction();
+            productService.soldOutProduct(product, false);
         }
     }
 
