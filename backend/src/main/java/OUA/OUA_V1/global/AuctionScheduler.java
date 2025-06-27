@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class AuctionScheduler {
     private final ProductFacade productFacade;
 
-    @Scheduled(fixedRate = 3600000) //1시간 (실 서비스가 아니므로 길게 설정해놨습니다.)
+    @Scheduled(cron = "0 0 4 * * *") //4시에 업데이트 (실 서비스가 아니므로 길게 설정해놨습니다.)
     public void checkExpiredAuctions() {
         productFacade.finalizeExpiredAuctions();
     }
