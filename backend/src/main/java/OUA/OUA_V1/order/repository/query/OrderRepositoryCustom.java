@@ -1,8 +1,6 @@
 package OUA.OUA_V1.order.repository.query;
 
 import OUA.OUA_V1.order.domain.Orders;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 import javax.annotation.Nullable;
