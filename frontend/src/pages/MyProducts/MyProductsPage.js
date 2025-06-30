@@ -4,7 +4,7 @@ import './MyProductsPage.css';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 import noImageIcon from '../../assets/images/no-image-icon.png';
 
-const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
+const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket2/';
 
 const MyProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -95,7 +95,7 @@ const MyProductsPage = () => {
       <div className="my-products-card-info">
         <h3 className="my-products-name">{product.name}</h3>
         
-        <div className="product-meta">
+        <div className="my-products-meta">
           <div className="my-products-price-box">
             <span className="my-products-highest-price">
               {product.highestOrderPrice.toLocaleString()}원

@@ -6,7 +6,7 @@ import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 import searchIcon from '../../assets/images/icon-search.png';
 import noImageIcon from '../../assets/images/no-image-icon.png';
 
-const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
+const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket2/';
 
 const Main = () => {
   const [products, setProducts] = useState([]);
