@@ -6,10 +6,12 @@ import org.springframework.data.domain.Slice;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductRepositoryCustom {
     Slice<Product> findByFiltersWithKeySet(String keyword, Boolean onSale,
                                            Integer categoryId, LocalDateTime lastCreatedDate, int size);
     Slice<Product> findByMemberIdWithKeySet(Long memberId, LocalDateTime localDateTime, int size);
     List<Product> findByEndTimeBeforeAndStatus(LocalDateTime endTime, ProductStatus status);
+    Optional<Product> findByIdWithMemberId(Long id);
 }

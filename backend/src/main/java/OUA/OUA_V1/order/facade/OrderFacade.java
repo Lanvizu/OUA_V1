@@ -17,6 +17,7 @@ import OUA.OUA_V1.product.exception.badRequest.ProductClosedException;
 import OUA.OUA_V1.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -31,19 +32,11 @@ public class OrderFacade {
     private final JvmLockTemplate lockTemplate;
 
     // 락 해제 시점을 트랜잭션 커밋 이후로 고정하기 위해 트랜잭션 어노테이션 제거.
-    public Long create(Long memberId, Long productId, OrderRequest request) {
-        return lockTemplate.executeWithLock(productId, () -> {
-            Product product = productService.findById(productId);
-            validateOwnProduct(memberId, product);
-            validateProductIsActive(product);
-            validateNotExistingOrder(memberId, productId);
-            validateOrderPrice(product, request.orderPrice());
-
-            Member member = memberService.findById(memberId);
-            Orders orders = ordersService.createOrder(member, product, request.orderPrice());
+    @Transactional
+    public Long create(Member member, Product product, int orderPrice) {
+            Orders orders = ordersService.createOrder(member, product, orderPrice);
             productService.updateHighestOrder(product, orders.getId(), orders.getOrderPrice());
             return orders.getId();
-        });
     }
 
     public Long buyNow(Long memberId, Long productId) {

@@ -77,6 +77,11 @@ public class ProductService {
                 .orElseThrow(ProductNotFoundException::new);
     }
 
+    public Product findByIdWithMemberId(Long id) {
+        return productRepository.findByIdWithMemberId(id)
+                .orElseThrow(ProductNotFoundException::new);
+    }
+
     public Slice<ProductPreviewResponse> findByFiltersWithKeySet(
             String keyword, Boolean onSale, Integer categoryId, LocalDateTime lastCreatedDate, int size) {
         return productRepository.findByFiltersWithKeySet(keyword, onSale, categoryId, lastCreatedDate, size)

@@ -1,5 +1,6 @@
 package OUA.OUA_V1.product.repository.query;
 
+import OUA.OUA_V1.member.domain.QMember;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.domain.ProductStatus;
 import OUA.OUA_V1.product.domain.QProduct;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
@@ -96,4 +98,19 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                 )
                 .fetch();
     }
+
+    @Override
+    public Optional<Product> findByIdWithMemberId(Long productId) {
+        QProduct product = QProduct.product;
+        QMember member = QMember.member;
+
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(product)
+                        .join(product.member, member).fetchJoin()
+                        .where(product.id.eq(productId))
+                        .fetchOne()
+        );
+    }
+
 }

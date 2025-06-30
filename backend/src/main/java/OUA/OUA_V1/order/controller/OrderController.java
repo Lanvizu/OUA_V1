@@ -8,6 +8,7 @@ import OUA.OUA_V1.order.controller.response.MyOrdersResponse;
 import OUA.OUA_V1.order.controller.response.OrdersResponse;
 import OUA.OUA_V1.order.domain.Orders;
 import OUA.OUA_V1.order.facade.OrderFacade;
+import OUA.OUA_V1.order.facade.OrderLockFacade;
 import OUA.OUA_V1.order.service.OrdersService;
 import OUA.OUA_V1.product.controller.response.SlicedResponse;
 import jakarta.validation.Valid;
@@ -26,6 +27,7 @@ public class OrderController {
 
     private final OrdersService ordersService;
     private final OrderFacade orderFacade;
+    private final OrderLockFacade orderLockService;
 
     @PostMapping("/product/{productId}/orders")
     public ResponseEntity<Void> createOrder(
@@ -33,7 +35,7 @@ public class OrderController {
             @PathVariable Long productId,
             @RequestBody @Valid OrderRequest request
     ) {
-        Long orderId = orderFacade.create(memberId, productId, request);
+        Long orderId = orderLockService.create(memberId, productId, request);
         return ResponseEntity.ok().build();
     }
 
