@@ -7,7 +7,7 @@ import LeftArrowIcon from '../../assets/images/icon-left.png';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 import updateArrowIcon from '../../assets/images/update-arrow.png';
 
-const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket/';
+const IMAGE_BASE_URL = 'https://storage.googleapis.com/oua_bucket2/';
 
 const ProductPage = () => {
   const { productId } = useParams();
