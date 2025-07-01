@@ -7,7 +7,6 @@ import OUA.OUA_V1.order.controller.request.OrderRequest;
 import OUA.OUA_V1.order.controller.response.MyOrdersResponse;
 import OUA.OUA_V1.order.controller.response.OrdersResponse;
 import OUA.OUA_V1.order.domain.Orders;
-import OUA.OUA_V1.order.facade.OrderFacade;
 import OUA.OUA_V1.order.facade.OrderLockFacade;
 import OUA.OUA_V1.order.service.OrdersService;
 import OUA.OUA_V1.product.controller.response.SlicedResponse;
@@ -26,7 +25,6 @@ import java.time.LocalDateTime;
 public class OrderController {
 
     private final OrdersService ordersService;
-    private final OrderFacade orderFacade;
     private final OrderLockFacade orderLockService;
 
     @PostMapping("/product/{productId}/orders")
@@ -35,7 +33,7 @@ public class OrderController {
             @PathVariable Long productId,
             @RequestBody @Valid OrderRequest request
     ) {
-        Long orderId = orderLockService.create(memberId, productId, request);
+        orderLockService.createWithLock(memberId, productId, request);
         return ResponseEntity.ok().build();
     }
 
@@ -44,7 +42,7 @@ public class OrderController {
             @LoginMember Long memberId,
             @PathVariable Long productId
     ) {
-        Long orderId = orderFacade.buyNow(memberId, productId);
+        orderLockService.buyNowWithLock(memberId, productId);
         return ResponseEntity.ok().build();
     }
 
@@ -78,7 +76,7 @@ public class OrderController {
             @PathVariable("orderId") Long orderId,
             LoginProfile loginProfile
     ) {
-        orderFacade.cancel(loginProfile.memberId(), productId, orderId);
+        orderLockService.cancelWithLock(loginProfile.memberId(), productId, orderId);
         return ResponseEntity.noContent().build();
     }
 
@@ -90,7 +88,7 @@ public class OrderController {
             @RequestBody @Valid OrderRequest request,
             LoginProfile loginProfile
     ) {
-        orderFacade.updatePrice(productId, orderId, request);
+        orderLockService.updatePriceWithLock(productId, orderId, request);
         return ResponseEntity.ok().build();
     }
 }
