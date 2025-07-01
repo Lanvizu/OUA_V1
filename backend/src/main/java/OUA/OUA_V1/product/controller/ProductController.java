@@ -10,6 +10,7 @@ import OUA.OUA_V1.product.controller.response.ProductResponse;
 import OUA.OUA_V1.product.controller.response.SlicedResponse;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.facade.ProductFacade;
+import OUA.OUA_V1.product.facade.ProductLockFacade;
 import OUA.OUA_V1.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 public class ProductController {
 
     private final ProductFacade productFacade;
+    private final ProductLockFacade productLockFacade;
     private final ProductService productService;
 
     @PostMapping("/product")
@@ -42,7 +44,7 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(
             @PathVariable("productId") Long productId,
             LoginProfile loginProfile) {
-        productFacade.deleteProduct(productId);
+        productLockFacade.deleteWithLock(productId);
         return ResponseEntity.noContent().build();
     }
 
@@ -79,7 +81,7 @@ public class ProductController {
     @PatchMapping("/product/{productId}")
     public ResponseEntity<Void> updateProduct(@PathVariable("productId") Long productId,
                                               @LoginMember Long memberId) {
-        productFacade.finalizeAuctionIfExpired(productId);
+        productLockFacade.finalizeAuctionWithLockIfExpired(productId);
         return ResponseEntity.noContent().build();
     }
 }

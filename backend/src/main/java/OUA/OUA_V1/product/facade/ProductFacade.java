@@ -1,6 +1,5 @@
 package OUA.OUA_V1.product.facade;
 
-import OUA.OUA_V1.global.JvmLockTemplate;
 import OUA.OUA_V1.global.service.GcpStorageService;
 import OUA.OUA_V1.member.domain.Member;
 import OUA.OUA_V1.member.service.MemberService;
@@ -10,8 +9,6 @@ import OUA.OUA_V1.product.controller.request.ProductImagesRequest;
 import OUA.OUA_V1.product.controller.request.ProductRegisterRequest;
 import OUA.OUA_V1.product.controller.response.ProductResponse;
 import OUA.OUA_V1.product.domain.Product;
-import OUA.OUA_V1.product.domain.ProductStatus;
-import OUA.OUA_V1.product.exception.badRequest.ProductAlreadyDeletedException;
 import OUA.OUA_V1.product.exception.badRequest.ProductDeletedException;
 import OUA.OUA_V1.product.exception.badRequest.ProductIllegalFileException;
 import OUA.OUA_V1.product.service.ProductService;
@@ -20,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +28,6 @@ public class ProductFacade {
     private final ProductService productService;
     private final MemberService memberService;
     private final GcpStorageService gcpStorageService;
-    private final JvmLockTemplate lockTemplate;
     private final OrdersService ordersService;
 
     @Transactional
@@ -43,30 +38,10 @@ public class ProductFacade {
         return product.getId();
     }
 
-    public void deleteProduct(Long productId) {
-        lockTemplate.executeWithLock(
-                productId,
-                () -> {
-                    Product product = productService.findById(productId);
-                    validateProductIsActive(product.getStatus());
-                    productService.deleteProduct(product);
-                    ordersService.failAllByProductId(product.getId());
-                    deleteImages(product.getImageUrls());
-                    return null;
-                }
-        );
-    }
-
-    private void validateProductIsActive(ProductStatus productStatus) {
-        if (productStatus != ProductStatus.ACTIVE) {
-            throw new ProductAlreadyDeletedException();
-        }
-    }
-
-    private void deleteImages(List<String> imageUrls) {
-        for (String imageUrl : imageUrls) {
-            gcpStorageService.deleteImage(imageUrl);
-        }
+    @Transactional
+    public void delete(Product product) {
+        productService.deleteProduct(product);
+        ordersService.failAllByProductId(product.getId());
     }
 
     private List<String> uploadImages(List<MultipartFile> files) {
@@ -96,31 +71,8 @@ public class ProductFacade {
         return toProductResponse(product, isOwner);
     }
 
-    public void finalizeExpiredAuctions() {
-        List<Product> expiredAuctions = productService.findExpiredActiveProducts(LocalDateTime.now());
-        for (Product product : expiredAuctions) {
-            lockTemplate.executeWithLock(product.getId(), () -> {
-                finalizeAuctionInternal(product);
-                return null;
-            });
-        }
-    }
-
-    public void finalizeAuctionIfExpired(Long productId) {
-        lockTemplate.executeWithLock(productId, () -> {
-            Product product = productService.findById(productId);
-            if (product.getStatus() != ProductStatus.ACTIVE) {
-                return null;
-            }
-            if (product.getEndDate().isAfter(LocalDateTime.now())) {
-                return null;
-            }
-            finalizeAuctionInternal(product);
-            return null;
-        });
-    }
-
-    private void finalizeAuctionInternal(Product product) {
+    @Transactional
+    public void finalizeAuctionInternal(Product product) {
         if (product.getHighestOrderId() != null) {
             Orders orders = ordersService.findById(product.getHighestOrderId());
             ordersService.confirmOrderFailOthers(product.getId(), orders);
