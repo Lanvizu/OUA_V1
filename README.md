@@ -8,36 +8,6 @@
 
 > 현재 혼자 개발하며 공부중인 프로젝트 입니다.
 
-## 기능 정리
-
-- **상품 검색 및 상세 페이지 구현**
-    
-    QueryDSL을 활용해 조건별 필터링, 키워드 검색을 포함한 유연한 상품 검색 기능을 구현
-    
-    N+1 문제를 개선하기 위해 대표 이미지 URL을 별도 컬럼으로 분리해 조회 최적화를 수행해 전체 페이지 응답 속도를 약 35% 개선
-    
-- **입찰 기능 및 동시성 제어**
-    
-    상품 단위로 경매 취소나 입찰이 동시에 발생할 수 있는 상황을 고려해 ReentrantLock을 적용해 Race Condition을 방지
-    
-    JMeter를 활용한 동시성 테스트 과정에서 트랜잭션 커밋과 락 해제 사이의 간극으로 인해 발생하는 문제를 발견했고, 이를 TransactionSynchronizationManager를 사용해 커밋 이후 락이 해제되도록 조정하여 안정적인 동시성 처리를 구현
-    
-- **회원가입 이메일 인증**
-    
-    인증 코드는 일시적이며 TTL이 필요한 데이터이므로, RDBMS보다 Redis와 같은 in-memory 저장소가 적합하다고 판단
-    
-    또한, 이메일 인증 요청에 1분 제한을 두는 Rate Limiting 기능도 Redis의 TTL 기반 실시간 제어를 활용해 구현
-    
-- **JWT 기반 사용자 인증 및 권한 제어**
-    
-    JWT 기반 인증/인가를 적용해 상품 CRUD 요청 시 사용자 인증 상태를 Stateless하게 처리하여 확장성과 보안성을 확보
-    
-- **CI/CD 및 배포 자동화**
-    
-    GitHub Actions를 통해 백엔드와 프론트엔드의 테스트, 빌드, Docker 이미지 생성 및 EC2 배포 자동화 파이프라인을 구축
-    
-    Let’s Encrypt 인증서를 자동 갱신 방식으로 적용해 Nginx와 연동했으며 HTTPS 기반으로 AWS EC2에 배포
-
 ## ✅성능 개선
 
 ### 📦 상품 조회 API & 내 주문 조회 API (Keyset Pagination & N+1 문제) 
@@ -196,82 +166,9 @@
 
    현재 프로젝트는 단일 AWS 서버를 통해서 배포가 진행되므로 Redis 분산락은 오버 엔지니어링이라고 판단했습니다.
 
-   Redis 분산락은 주로 다중 서버에서 사용하며 네트워크 I/O의 외부의존성, Redis 장애 시 발생하는 문제점 등을 생각했습니다.
-
    따라서 메모리 상에서 동작하며, 동일 JVM 내에서는 매우 빠르고 안정적인 락을 제공하는 ReentrantLock으로 개선했습니다.
 
-   <details>
-    <summary><h4>ReentrantLock 코드</h4></summary>
-
-   ```java
-
-   package OUA.OUA_V1.global;
-
-   import OUA.OUA_V1.auth.exception.ConcurrentAccessException;
-   import lombok.RequiredArgsConstructor;
-   import org.springframework.stereotype.Component;
-   import org.springframework.transaction.support.TransactionSynchronization;
-   import org.springframework.transaction.support.TransactionSynchronizationManager;
-   
-   import java.util.concurrent.locks.ReentrantLock;
-   import java.util.function.Supplier;
-   
-   @Component
-   @RequiredArgsConstructor
-   public class JvmLockTemplate {
-   
-       private final ProductLockManager lockManager;
-   public <T> T executeWithLock(Long productId, Supplier<T> action) {
-       ReentrantLock lock = lockManager.getLock(productId);
-       boolean acquired = false;
-   
-       try {
-           acquired = lock.tryLock();
-           if (!acquired) {
-               throw new ConcurrentAccessException();
-           }
-   
-   
-           // 락 해제를 트랜잭션 커밋 후로 지연
-           if (TransactionSynchronizationManager.isSynchronizationActive()) {
-               TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                   @Override
-                   public void afterCommit() {
-                       lock.unlock();
-                   }
-   
-                   @Override
-                   public void afterCompletion(int status) {
-                       // 트랜잭션 롤백 시 unlock 처리 (누수 방지)
-                       if (status != STATUS_COMMITTED) {
-                           lock.unlock();
-                       }
-                   }
-               });
-           } else {
-               // 트랜잭션 없을 경우 즉시 해제
-               return runAndUnlock(action, lock);
-           }
-   
-           return action.get();
-       } catch (RuntimeException e) {
-           if (acquired) {
-               lock.unlock();
-           }
-           throw e;
-       }
-   }
-   
-       private <T> T runAndUnlock(Supplier<T> action, ReentrantLock lock) {
-           try {
-               return action.get();
-           } finally {
-               lock.unlock();
-           }
-       }
-   }
-   ```
-   </details>
+   추가로 트랜잭션과 락의 범위를 수정하여 락을 획득 후, 트랜잭션을 시작하도록 설정해 동시성을 제어했습니다.
    
  </details>
 
