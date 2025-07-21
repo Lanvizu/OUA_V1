@@ -4,24 +4,24 @@ import OUA.OUA_V1.member.exception.MemberEmailCreateException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private static final String senderEmail= "ghzm888@gmail.com";
+    private static final String senderEmail = "ghzm888@gmail.com";
 
-    public void sendVerificationEmail(String email, String code){
+    @Async
+    public void sendVerificationEmail(String email, String code) {
         MimeMessage message = createMail(email, code);
         mailSender.send(message);
     }
 
-    private MimeMessage createMail(String email, String code){
+    private MimeMessage createMail(String email, String code) {
 
         MimeMessage message = mailSender.createMimeMessage();
         try {
@@ -32,7 +32,7 @@ public class EmailService {
             body += "<h3>" + "요청하신 인증 번호입니다." + "</h3>";
             body += "<h1>" + code + "</h1>";
             body += "<h3>" + "감사합니다." + "</h3>";
-            message.setText(body,"UTF-8", "html");
+            message.setText(body, "UTF-8", "html");
         } catch (MessagingException e) {
             // 예외처리 개선 필요
             throw new MemberEmailCreateException();
