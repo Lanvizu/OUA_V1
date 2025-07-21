@@ -23,7 +23,6 @@ import java.security.SecureRandom;
 import java.util.Map;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MemberFacade {
 
