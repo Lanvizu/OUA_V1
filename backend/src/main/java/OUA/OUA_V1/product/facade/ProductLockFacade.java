@@ -2,11 +2,8 @@ package OUA.OUA_V1.product.facade;
 
 import OUA.OUA_V1.global.JvmLockTemplate;
 import OUA.OUA_V1.global.service.GcpStorageService;
-import OUA.OUA_V1.member.service.MemberService;
-import OUA.OUA_V1.order.service.OrdersService;
 import OUA.OUA_V1.product.domain.Product;
 import OUA.OUA_V1.product.domain.ProductStatus;
-import OUA.OUA_V1.product.exception.badRequest.ProductAlreadyDeletedException;
 import OUA.OUA_V1.product.exception.badRequest.ProductClosedException;
 import OUA.OUA_V1.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
