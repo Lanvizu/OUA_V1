@@ -4,9 +4,9 @@
 
 ### 사용자 간 중고 상품의 등록, 입찰, 낙찰까지의 흐름을 지원하는 실시간 경매 플랫폼입니다.
 
-[OUA_V1](https://oua-v1.duckdns.org)
+[기능 정리](https://www.notion.so/OUA-Online-Used-Auction-20a2a3943417805ea8d3d57607d301a6?source=copy_link)
 
-> 현재 혼자 개발하며 공부중인 프로젝트 입니다.
+> 현재는 종료한 프로젝트입니다.
 
 ## 성능 개선
 
